@@ -1,5 +1,6 @@
 import TradingViewWidget from "@/components/TradingViewWidget";
 import SectorHeatmap from "@/components/market/SectorHeatmap";
+import MarketContextBar from "@/components/market/MarketContextBar";
 import MarketMovers from "@/components/market/MarketMovers";
 import NewsGrid from "@/components/watchlist/NewsGrid";
 import {
@@ -120,7 +121,12 @@ async function AShareDashboard() {
 
 const Home = async () => {
     const market = await getActiveMarket();
-    return market === 'cn' ? <AShareDashboard /> : <USMarketDashboard />;
+    return (
+        <div className="flex min-h-screen flex-col items-center gap-6">
+            <MarketContextBar market={market} />
+            {market === 'cn' ? <AShareDashboard /> : <USMarketDashboard />}
+        </div>
+    );
 };
 
 export default Home;
