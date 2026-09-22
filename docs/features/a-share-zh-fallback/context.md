@@ -31,7 +31,10 @@ A 股数据不能依赖单一免费接口，必须具备多数据源 fallback，
 - **非官方源加环境开关**：`ENABLE_UNOFFICIAL_MARKET_DATA`，公开部署可一键关闭。
 
 ## 需求调整
-- 增加 GitHub fork 与提交要求：最终代码推送到 `mjnhmd/OpenStock`。
+1. 增加 GitHub fork 与提交要求：最终代码推送到 `mjnhmd/OpenStock`。
+2. **用户明确否决了"只加一个 A 股 tab"的做法**：要求左上/右上提供全局市场切换，
+   选 A 股时所有数据（热力图、板块分类、行情、新闻）都必须是 A 股；选美股时
+   完全回到最初的形态。因此改为双市场仪表盘 + cookie 持久化。
 
 ## Bug 根因与修复
 1. **Inngest 工作流全部注册失败**
@@ -55,6 +58,36 @@ A 股数据不能依赖单一免费接口，必须具备多数据源 fallback，
 4. **构建与 dev server 同时运行导致 `.next` 损坏**
    - 处理：先停 dev server 再 `npm run build`，验证流程改为串行。
 
+## 双市场改造（第二轮）
+
+### 设计
+- 顶部 Header 右侧新增 `MarketSwitcher`（A股 / 美股分段控件），写入
+  `openstock_market` cookie 并 `router.refresh()`，服务端组件通过
+  `getActiveMarket()` 读取。
+- **不用 TradingView 承载 A 股热力图/板块/行情**，原因：
+  1. TradingView 的 China 覆盖不可靠，`dataSource` 无法确认支持 A 股全市场；
+  2. 本机终端到 `s3.tradingview.com` / `www.tradingview.com` 全部超时，
+     无法验证其 A 股行为；
+  3. 用自有 provider 才能真正保证"全是 A 股"。
+- A 股仪表盘改为自建组件：
+  - `SectorHeatmap` 行业板块热力图（面积按成交额，颜色按涨跌幅）
+  - `SectorHeatmap` 概念板块热力图
+  - `MarketMovers` 涨幅榜
+  - `NewsGrid` A 股资讯
+- 美股仪表盘保持最初的 4 个 TradingView widget，`locale: 'en'`。
+- 涨跌配色按市场区分：A 股红涨绿跌，美股绿涨红跌（`MARKET_THEMES`）。
+- 个股页 TradingView widget 与自选股 widget 的 locale 跟随市场。
+
+### 新增数据能力
+| 能力 | 接口 | fallback |
+|---|---|---|
+| 行业板块 | 东财 `clist` `m:90+t:2` | 缓存(stale) |
+| 概念板块 | 东财 `clist` `m:90+t:3` | 缓存(stale) |
+| 涨幅榜 | 东财 `clist` 全市场快照 | 精选蓝筹逐只取价 |
+| A股资讯 | 东财 `getNewsByColumns` col=349 | 腾讯沪深300 `type=2` → 东财 7×24 |
+
+搜索也按市场过滤：A 股模式只返回 6 位数字 + `.SH`/`.SZ`，美股模式剔除 A 股代码。
+
 ## 影响范围
 - 新增：`lib/market-data/**`、`__tests__/a-share-*.test.ts`、
   `__tests__/market-data-fallback.test.ts`、`CLAUDE.md`、`.env.example`、本目录。
@@ -75,10 +108,21 @@ A 股数据不能依赖单一免费接口，必须具备多数据源 fallback，
   （`000001` 会命中基金），因此置于最后。
 
 自动化验证：
-- `npm test` → 6 passed / 2 skipped，95 passed / 14 skipped。
-- `npm run test:market` → 10 passed（真实网络，覆盖 search/quote/profile/kline、
-  兼容 action、以及每个 provider 独立可用性）。
+- `npm test` → 100 passed 量级（新增 market-switch 单测）。
+- `npm run test:market` → 16 passed（真实网络，覆盖 search/quote/profile/kline、
+  板块、涨幅榜、A 股资讯、兼容 action、每个 provider 独立可用性、
+  以及 A 股/美股搜索结果互不串台）。
 - `npm run build` → 通过，15 个路由全部生成。
+
+双市场验证（真实 session + cookie，SSR HTML 断言）：
+- `openstock_market=cn` → 页面含「行业板块热力图 / 概念板块热力图 / 涨幅榜 / 市场新闻」，
+  行情代码全部形如 `000001.SZ`；新闻标题为「沪深两市今日成交额合计 2.14 万亿元」等
+  A 股内容；**无** `NYSE:` / `NASDAQ:` / `SPX500` 泄漏。
+- `openstock_market=us` → 页面含「市场概览 / 股票热力图」与 `NYSE:`、`NASDAQ:`、`SPX500`；
+  **无** `SSE:` / `SZSE:` 泄漏。
+- 切换控件渲染出 `市场切换`（aria-label）与 A股 / 美股 两个按钮。
+- dev server 日志确认 `marketSnapshot` / `boards:industry` / `boards:concept` / `news`
+  四个新操作均由 eastmoney 成功返回。
 
 真实交互验证（Better Auth 真实 session + curl SSR）：
 - `/sign-in` 渲染：欢迎回来 / 邮箱 / 密码 / 忘记密码 / 登录 / 创建账号。
@@ -102,9 +146,13 @@ A 股数据不能依赖单一免费接口，必须具备多数据源 fallback，
 - BaoStock 仅 EOD，不能作为实时行情源。
 - 北交所代码（如 `920002`）在当前规范化规则下不支持，会返回无效符号。
 - 新浪搜索一次仅返回 1 条；腾讯 `smartbox` 同样偏窄，精确匹配优先。
-- 新闻仍走 Finnhub，A 股个股新闻未接入新源。
+- A 股模式下的新闻是全市场资讯流，未接入「按个股过滤」的 A 股新闻。
+- 指数（上证指数 / 深证成指 / 创业板指）未纳入 A 股仪表盘，
+  因为 `000001` 在归一化规则里会解析成平安银行而不是上证指数，需要单独的指数命名空间。
 
 ## 已完成
+- 全局市场切换（Header 右侧），cookie 持久化，作用于仪表盘/搜索/新闻/locale/配色。
+- A 股自建热力图、板块、涨幅榜、资讯面板；美股恢复原始 TradingView 形态。
 - `CLAUDE.md` 项目规则、`.env.example`、功能上下文文档。
 - A 股 provider 抽象、符号规范化、fallback、熔断、缓存与 stale 标识。
 - 4 个 provider：东方财富 / 腾讯 / 新浪 / astock。
@@ -114,7 +162,7 @@ A 股数据不能依赖单一免费接口，必须具备多数据源 fallback，
 - 单元测试 + 集成测试 + 构建 + 真实 session SSR 验证。
 
 ## 待完成
-- 提交并推送到 `fork/feature/a-share-zh-fallback`。
+- 提交并推送到 `fork/feature/a-share-zh-fallback`（第二轮改动）。
 
 ## 阻塞项
 - 无。

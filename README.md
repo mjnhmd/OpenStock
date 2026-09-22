@@ -126,8 +126,13 @@ Language composition
     - Search, quote, profile and daily K-line for Shanghai / Shenzhen listings
     - Multi-provider fallback with circuit breaker and explicit stale cache
     - Canonical symbols (`600519.SH`, `000001.SZ`) with alias normalization
+    - A-share industry/concept heatmaps, gainers board and A-share news feed
     - See [MARKET_SUPPORT.md](./MARKET_SUPPORT.md) for provider chains and the
       licensing boundary before any public deployment
+- Market switch (A-share / US)
+    - Header toggle persists the choice in the `openstock_market` cookie
+    - Switches dashboard widgets, search scope, news and TradingView locale
+    - A-share mode uses the Chinese red-up / green-down convention
 - Simplified Chinese UI
     - `zh-CN` by default, CNY formatting for A-shares, TradingView locale `zh_CN`
 - Stock details

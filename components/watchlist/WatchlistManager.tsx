@@ -6,13 +6,15 @@ import TradingViewWatchlist from './TradingViewWatchlist';
 import { Button } from '@/components/ui/button';
 import { ArrowDownAZ, ArrowUpZA, ArrowUpDown } from 'lucide-react';
 import { WatchlistItem } from '@/database/models/watchlist.model';
+import type { Market } from '@/lib/market-data/market';
 
 interface WatchlistManagerProps {
     initialItems: WatchlistItem[]; // Using the DB model type directly or a simplified version
     userId: string;
+    market?: Market;
 }
 
-export default function WatchlistManager({ initialItems, userId }: WatchlistManagerProps) {
+export default function WatchlistManager({ initialItems, userId, market = 'cn' }: WatchlistManagerProps) {
     // Sort state: 'asc' (A-Z), 'desc' (Z-A), or null (added order/default)
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null);
 
@@ -89,7 +91,7 @@ export default function WatchlistManager({ initialItems, userId }: WatchlistMana
             </div>
 
             <div className="min-h-[550px]">
-                <TradingViewWatchlist symbols={watchlistSymbols} />
+                <TradingViewWatchlist symbols={watchlistSymbols} locale={market === 'us' ? 'en' : 'zh_CN'} />
             </div>
         </div>
     );

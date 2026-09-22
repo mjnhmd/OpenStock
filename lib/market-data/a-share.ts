@@ -1,11 +1,17 @@
 import { astockProvider } from './providers/astock';
+import { eastmoneyFlashProvider, eastmoneyNewsProvider } from './providers/eastmoney-news';
+import { tencentNewsProvider } from './providers/tencent-news';
 import { eastmoneyProvider } from './providers/eastmoney';
 import { sinaProvider } from './providers/sina';
 import { tencentProvider } from './providers/tencent';
 import { withProviderFallback } from './fallback';
 import { normalizeAShareSymbol } from './symbols';
+import { POPULAR_A_SHARE_SYMBOLS } from '@/lib/constants';
 import type {
+    AShareBoard,
     AShareKlineBar,
+    AShareMarketRow,
+    BoardKind,
     AShareProvider,
     AShareProfile,
     AShareQuote,
@@ -181,4 +187,102 @@ export function getConfiguredAShareProviders() {
         profile: PROFILE_PROVIDERS.map((provider) => provider.name),
         kline: KLINE_PROVIDERS.map((provider) => provider.name),
     };
+}
+
+const BOARD_PROVIDERS: AShareProvider[] = unofficialProvidersEnabled ? [eastmoneyProvider] : [];
+const SNAPSHOT_PROVIDERS: AShareProvider[] = unofficialProvidersEnabled ? [eastmoneyProvider] : [];
+
+export async function getAShareBoards(
+    kind: BoardKind,
+    context: ProviderContext = {},
+): Promise<ProviderResult<AShareBoard[]>> {
+    return withProviderFallback<AShareBoard[]>({
+        namespace: `a-share:boards:${kind}`,
+        cacheKey: kind,
+        operation: `boards:${kind}`,
+        symbolOrQuery: kind,
+        providers: BOARD_PROVIDERS,
+        run: async (provider) => {
+            if (!provider.boards) throw new Error(`${provider.name} does not support boards`);
+            return provider.boards(kind, context);
+        },
+        validate: (boards) => Array.isArray(boards) && boards.length > 0,
+        freshTtlMs: 60_000,
+        staleTtlMs: 30 * 60_000,
+    });
+}
+
+export async function getAShareMarketMovers(
+    limit = 40,
+    context: ProviderContext = {},
+): Promise<ProviderResult<AShareMarketRow[]>> {
+    try {
+        return await withProviderFallback<AShareMarketRow[]>({
+            namespace: 'a-share:movers',
+            cacheKey: String(limit),
+            operation: 'marketSnapshot',
+            symbolOrQuery: 'all',
+            providers: SNAPSHOT_PROVIDERS,
+            run: async (provider) => {
+                if (!provider.marketSnapshot) throw new Error(`${provider.name} does not support marketSnapshot`);
+                return provider.marketSnapshot(context, limit);
+            },
+            validate: (rows) => Array.isArray(rows) && rows.length > 0,
+            freshTtlMs: 30_000,
+            staleTtlMs: 30 * 60_000,
+        });
+    } catch (error) {
+        // Degraded fallback: quote a curated blue-chip list one by one.
+        const quotes = await Promise.allSettled(
+            POPULAR_A_SHARE_SYMBOLS.map((symbol) => getAShareQuote(symbol, context)),
+        );
+        const rows: AShareMarketRow[] = quotes.flatMap((result) => {
+            if (result.status !== 'fulfilled') return [];
+            const quote = result.value.data;
+            return [{
+                symbol: quote.symbol,
+                name: quote.name,
+                price: quote.price,
+                changePercent: quote.changePercent,
+                change: quote.change,
+                provider: quote.provider,
+            } satisfies AShareMarketRow];
+        });
+
+        if (rows.length === 0) throw error;
+        console.warn('[market-data] market snapshot fell back to curated quotes', {
+            count: rows.length,
+        });
+        return {
+            data: rows,
+            provider: rows[0].provider,
+            stale: false,
+            fromCache: false,
+            attemptedProviders: SNAPSHOT_PROVIDERS.map((provider) => provider.name),
+        };
+    }
+}
+
+const NEWS_PROVIDERS: AShareProvider[] = unofficialProvidersEnabled
+    ? [eastmoneyNewsProvider, tencentNewsProvider, eastmoneyFlashProvider]
+    : [];
+
+export async function getAShareNews(
+    limit = 12,
+    context: ProviderContext = {},
+): Promise<ProviderResult<MarketNewsArticle[]>> {
+    return withProviderFallback<MarketNewsArticle[]>({
+        namespace: 'a-share:news',
+        cacheKey: String(limit),
+        operation: 'news',
+        symbolOrQuery: 'A股',
+        providers: NEWS_PROVIDERS,
+        run: async (provider) => {
+            if (!provider.news) throw new Error(`${provider.name} does not support news`);
+            return provider.news(context, limit);
+        },
+        validate: (articles) => Array.isArray(articles) && articles.length > 0,
+        freshTtlMs: 5 * 60_000,
+        staleTtlMs: 6 * 60 * 60_000,
+    });
 }

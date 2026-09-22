@@ -107,6 +107,9 @@ all accepted and collapse to the same canonical symbol:
 | Quote | Eastmoney `push2` | Tencent `qt.gtimg.cn` | Sina `hq.sinajs.cn` | local `astock` |
 | Profile | Eastmoney `push2` | Tencent `qt.gtimg.cn` | Sina `hq.sinajs.cn` | local `astock` |
 | Daily K-line | Eastmoney `push2his` | Tencent `fqkline` | local `astock` (BaoStock, EOD) | — |
+| Industry/concept boards | Eastmoney `clist` | served from stale cache | — | — |
+| Market gainers snapshot | Eastmoney `clist` | curated blue-chip quotes | — | — |
+| A-share news | Eastmoney `getNewsByColumns` (col 349) | Tencent CSI300 feed (`type=2`) | Eastmoney 7x24 `getFastNewsList` | stale cache |
 
 Behavior guarantees:
 
@@ -127,6 +130,24 @@ RUN_MARKET_INTEGRATION=1 npm run test:market # live provider smoke test
 
 Expected: search resolves `贵州茅台` → `600519.SH`, quote returns a positive CNY
 price, profile returns the company name, and daily K-line returns bars.
+
+### Market switch
+
+A toggle in the header switches the whole app between A-share and US mode. The
+choice is persisted in the `openstock_market` cookie and applies to:
+
+- the dashboard (heatmap, boards, movers and news all swap source)
+- search results (A-share mode returns A-share symbols only, US mode the reverse)
+- news on the watchlist page
+- TradingView locale and the up/down colour convention
+
+A-share mode renders its own heatmap, board lists, movers table and news grid
+from the providers above, so it does not depend on TradingView's China coverage.
+TradingView is still used for an individual A-share symbol's chart, which is
+addressable as `SSE:600519` / `SZSE:000001`.
+
+A-share mode follows the Chinese convention of red for gains and green for
+losses; US mode keeps the Western convention.
 
 ### ⚠️ Licensing and deployment boundary
 

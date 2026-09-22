@@ -51,7 +51,7 @@ export const CONDITION_OPTIONS = [
 export const MARKET_OVERVIEW_WIDGET_CONFIG = {
     colorTheme: 'dark', // dark mode
     dateRange: '12M', // last 12 months
-    locale: TRADINGVIEW_LOCALE, // language
+    locale: 'en', // US market mode keeps the original English widgets
     largeChartUrl: '', // link to a large chart if needed
     isTransparent: true, // makes background transparent
     showFloatingTooltip: true, // show tooltip on hover
@@ -66,17 +66,7 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
     symbolActiveColor: 'rgba(15, 237, 190, 0.05)', // highlight color for active symbol
     tabs: [
         {
-            title: 'A股',
-            symbols: [
-                { s: 'SSE:600519', d: '贵州茅台' },
-                { s: 'SZSE:300750', d: '宁德时代' },
-                { s: 'SZSE:000001', d: '平安银行' },
-                { s: 'SSE:601318', d: '中国平安' },
-                { s: 'SSE:600036', d: '招商银行' },
-            ],
-        },
-        {
-            title: '金融',
+            title: 'Financial',
             symbols: [
                 { s: 'NYSE:JPM', d: 'JPMorgan Chase' },
                 { s: 'NYSE:WFC', d: 'Wells Fargo Co New' },
@@ -87,7 +77,7 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
             ],
         },
         {
-            title: '科技',
+            title: 'Technology',
             symbols: [
                 { s: 'NASDAQ:AAPL', d: 'Apple' },
                 { s: 'NASDAQ:GOOGL', d: 'Alphabet' },
@@ -98,7 +88,7 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
             ],
         },
         {
-            title: '服务',
+            title: 'Services',
             symbols: [
                 { s: 'NASDAQ:AMZN', d: 'Amazon' },
                 { s: 'NYSE:BABA', d: 'Alibaba Group Hldg Ltd' },
@@ -122,7 +112,7 @@ export const HEATMAP_WIDGET_CONFIG = {
     blockColor: 'change',
     grouping: 'sector',
     isTransparent: true,
-    locale: TRADINGVIEW_LOCALE,
+    locale: 'en',
     symbolUrl: '',
     colorTheme: 'dark',
     exchanges: [],
@@ -140,34 +130,24 @@ export const TOP_STORIES_WIDGET_CONFIG = {
     feedMode: 'market',
     colorTheme: 'dark',
     isTransparent: true,
-    locale: TRADINGVIEW_LOCALE,
+    locale: 'en',
     market: 'stock',
     width: '100%',
     height: '600',
 };
 
 export const MARKET_DATA_WIDGET_CONFIG = {
-    title: 'A股与美股',
+    title: 'Stocks',
     width: '100%',
     height: 600,
-    locale: TRADINGVIEW_LOCALE,
+    locale: 'en',
     showSymbolLogo: true,
     colorTheme: 'dark',
     isTransparent: false,
     backgroundColor: '#0F0F0F',
     symbolsGroups: [
         {
-            name: 'A股热门',
-            symbols: [
-                { name: 'SSE:600519', displayName: '贵州茅台' },
-                { name: 'SZSE:300750', displayName: '宁德时代' },
-                { name: 'SZSE:000001', displayName: '平安银行' },
-                { name: 'SSE:601318', displayName: '中国平安' },
-                { name: 'SSE:600036', displayName: '招商银行' },
-            ],
-        },
-        {
-            name: '金融',
+            name: 'Financial',
             symbols: [
                 { name: 'NYSE:JPM', displayName: 'JPMorgan Chase' },
                 { name: 'NYSE:WFC', displayName: 'Wells Fargo Co New' },
@@ -178,7 +158,7 @@ export const MARKET_DATA_WIDGET_CONFIG = {
             ],
         },
         {
-            name: '科技',
+            name: 'Technology',
             symbols: [
                 { name: 'NASDAQ:AAPL', displayName: 'Apple' },
                 { name: 'NASDAQ:GOOGL', displayName: 'Alphabet' },
@@ -189,7 +169,7 @@ export const MARKET_DATA_WIDGET_CONFIG = {
             ],
         },
         {
-            name: '服务',
+            name: 'Services',
             symbols: [
                 { name: 'NASDAQ:AMZN', displayName: 'Amazon' },
                 { name: 'NYSE:BABA', displayName: 'Alibaba Group Hldg Ltd' },
@@ -201,16 +181,16 @@ export const MARKET_DATA_WIDGET_CONFIG = {
     ],
 };
 
-export const SYMBOL_INFO_WIDGET_CONFIG = (symbol: string) => ({
+export const SYMBOL_INFO_WIDGET_CONFIG = (symbol: string, locale: string = TRADINGVIEW_LOCALE) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: true,
-    locale: TRADINGVIEW_LOCALE,
+    locale,
     width: '100%',
     height: 170,
 });
 
-export const CANDLE_CHART_WIDGET_CONFIG = (symbol: string) => ({
+export const CANDLE_CHART_WIDGET_CONFIG = (symbol: string, locale: string = TRADINGVIEW_LOCALE) => ({
     allow_symbol_change: false,
     calendar: false,
     details: true,
@@ -220,7 +200,7 @@ export const CANDLE_CHART_WIDGET_CONFIG = (symbol: string) => ({
     hide_volume: false,
     hotlist: false,
     interval: 'D',
-    locale: TRADINGVIEW_LOCALE,
+    locale,
     save_image: false,
     style: 1,
     symbol: symbol.toUpperCase(),
@@ -236,7 +216,7 @@ export const CANDLE_CHART_WIDGET_CONFIG = (symbol: string) => ({
     height: 600,
 });
 
-export const BASELINE_WIDGET_CONFIG = (symbol: string) => ({
+export const BASELINE_WIDGET_CONFIG = (symbol: string, locale: string = TRADINGVIEW_LOCALE) => ({
     allow_symbol_change: false,
     calendar: false,
     details: false,
@@ -246,7 +226,7 @@ export const BASELINE_WIDGET_CONFIG = (symbol: string) => ({
     hide_volume: false,
     hotlist: false,
     interval: 'D',
-    locale: TRADINGVIEW_LOCALE,
+    locale,
     save_image: false,
     style: 10,
     symbol: symbol.toUpperCase(),
@@ -262,31 +242,31 @@ export const BASELINE_WIDGET_CONFIG = (symbol: string) => ({
     height: 600,
 });
 
-export const TECHNICAL_ANALYSIS_WIDGET_CONFIG = (symbol: string) => ({
+export const TECHNICAL_ANALYSIS_WIDGET_CONFIG = (symbol: string, locale: string = TRADINGVIEW_LOCALE) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: 'true',
-    locale: TRADINGVIEW_LOCALE,
+    locale,
     width: '100%',
     height: 400,
     interval: '1h',
     largeChartUrl: '',
 });
 
-export const COMPANY_PROFILE_WIDGET_CONFIG = (symbol: string) => ({
+export const COMPANY_PROFILE_WIDGET_CONFIG = (symbol: string, locale: string = TRADINGVIEW_LOCALE) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: 'true',
-    locale: TRADINGVIEW_LOCALE,
+    locale,
     width: '100%',
     height: 440,
 });
 
-export const COMPANY_FINANCIALS_WIDGET_CONFIG = (symbol: string) => ({
+export const COMPANY_FINANCIALS_WIDGET_CONFIG = (symbol: string, locale: string = TRADINGVIEW_LOCALE) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: 'true',
-    locale: TRADINGVIEW_LOCALE,
+    locale,
     width: '100%',
     height: 464,
     displayMode: 'regular',

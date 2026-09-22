@@ -10,6 +10,7 @@ import AlertsPanel from '@/components/watchlist/AlertsPanel';
 import NewsGrid from '@/components/watchlist/NewsGrid';
 import SearchCommand from '@/components/SearchCommand';
 import { Loader2 } from 'lucide-react';
+import { getActiveMarket } from '@/lib/market-data/market-server';
 
 export default async function WatchlistPage() {
     const session = await auth.api.getSession({
@@ -21,18 +22,21 @@ export default async function WatchlistPage() {
     }
 
     const userId = session.user.id;
+    const market = await getActiveMarket();
 
     // Parallel data fetching
     const [watchlistItems, alerts, news] = await Promise.all([
         getUserWatchlist(userId),
         getUserAlerts(userId),
-        getNews().catch(() => []) // Initial news fetch
+        getNews(undefined, market).catch(() => []) // Initial news fetch
     ]);
 
     const watchlistSymbols = watchlistItems.map((item: any) => item.symbol);
 
-    // Fallback news if watchlist has items
-    const relevantNews = watchlistSymbols.length > 0 ? await getNews(watchlistSymbols).catch(() => news) : news;
+    // Fallback news if watchlist has items (A-share mode serves market news)
+    const relevantNews = market === 'us' && watchlistSymbols.length > 0
+        ? await getNews(watchlistSymbols, market).catch(() => news)
+        : news;
 
     return (
         <div className="min-h-screen bg-black text-gray-100 p-6 md:p-8">
@@ -45,7 +49,7 @@ export default async function WatchlistPage() {
                     <p className="text-gray-500 mt-1">跟踪关注的股票并管理价格提醒。</p>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <SearchCommand renderAs="button" label="添加股票" initialStocks={[]} />
+                    <SearchCommand renderAs="button" label="添加股票" initialStocks={[]} market={market} />
                 </div>
             </div>
 
@@ -53,7 +57,7 @@ export default async function WatchlistPage() {
                 {/* Main Content - Watchlist Table */}
                 <div className="lg:col-span-3 space-y-8">
                     <div className="space-y-6">
-                        <WatchlistManager initialItems={watchlistItems} userId={userId} />
+                        <WatchlistManager initialItems={watchlistItems} userId={userId} market={market} />
                     </div>
 
                     {/* News Section */}

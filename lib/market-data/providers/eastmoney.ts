@@ -1,10 +1,13 @@
 import { fetchJson } from '../http';
 import type {
+    AShareBoard,
     AShareKlineBar,
+    AShareMarketRow,
     AShareProvider,
     AShareProfile,
     AShareQuote,
     AShareSearchResult,
+    BoardKind,
     CanonicalAShareSymbol,
     ProviderContext,
 } from '../types';
@@ -12,6 +15,7 @@ import type {
 const SEARCH_URL = 'https://searchapi.eastmoney.com/api/suggest/get';
 const SEARCH_TOKEN = 'D43BF722C8E33BDC906FB84D85E326E8';
 const QUOTE_URL = 'https://push2.eastmoney.com/api/qt/stock/get';
+const LIST_URL = 'https://push2.eastmoney.com/api/qt/clist/get';
 const KLINE_URL = 'https://push2his.eastmoney.com/api/qt/stock/kline/get';
 const EASTMONEY_HEADERS = {
     Accept: 'application/json,text/plain,*/*',
@@ -37,6 +41,40 @@ interface EastmoneyQuoteResponse {
 
 interface EastmoneyKlineResponse {
     data?: { name?: string; klines?: string[] };
+}
+
+interface EastmoneyListRow {
+    f2?: number | string;
+    f3?: number | string;
+    f4?: number | string;
+    f5?: number | string;
+    f6?: number | string;
+    f8?: number | string;
+    f12?: string;
+    f13?: number | string;
+    f14?: string;
+    f104?: number | string;
+    f105?: number | string;
+    f128?: string;
+    f136?: number | string;
+    f140?: string;
+    f141?: number | string;
+}
+
+interface EastmoneyListResponse {
+    data?: { total?: number; diff?: EastmoneyListRow[] | Record<string, EastmoneyListRow> };
+}
+
+function toNumber(value: unknown): number | undefined {
+    if (value === null || value === undefined || value === '' || value === '-') return undefined;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function listRows(payload: EastmoneyListResponse): EastmoneyListRow[] {
+    const diff = payload.data?.diff;
+    if (!diff) return [];
+    return Array.isArray(diff) ? diff : Object.values(diff);
 }
 
 function numberValue(value: unknown, divisor = 1): number | undefined {
@@ -164,6 +202,70 @@ export const eastmoneyProvider: AShareProvider = {
                 provider: 'eastmoney',
             };
             return Number.isFinite(bar.close) ? [bar] : [];
+        });
+    },
+
+    async boards(kind: BoardKind, context: ProviderContext): Promise<AShareBoard[]> {
+        const fs = kind === 'industry' ? 'm:90+t:2' : 'm:90+t:3';
+        const fields = 'f2,f3,f6,f12,f14,f104,f105,f128,f136,f140,f141';
+        const url = `${LIST_URL}?pn=1&pz=200&po=1&np=1&fltt=2&invt=2&fid=f3&fs=${encodeURIComponent(fs)}&fields=${fields}`;
+        const payload = await fetchJson<EastmoneyListResponse>(url, context, { headers: EASTMONEY_HEADERS });
+
+        return listRows(payload).flatMap((row) => {
+            const code = row.f12;
+            const name = row.f14;
+            if (!code || !name) return [];
+            const leaderCode = row.f140;
+            const leaderMarket = String(row.f141 ?? '');
+            const leaderSymbol = leaderCode
+                ? `${leaderCode}.${leaderMarket === '1' ? 'SH' : 'SZ'}`
+                : undefined;
+
+            const board: AShareBoard = {
+                code,
+                name,
+                changePercent: toNumber(row.f3) ?? 0,
+                price: toNumber(row.f2),
+                turnover: toNumber(row.f6),
+                upCount: toNumber(row.f104),
+                downCount: toNumber(row.f105),
+                leaderName: row.f128,
+                leaderSymbol,
+                leaderChangePercent: toNumber(row.f136),
+                kind,
+                provider: 'eastmoney',
+            };
+            return [board];
+        });
+    },
+
+    async marketSnapshot(context: ProviderContext, limit = 50): Promise<AShareMarketRow[]> {
+        const size = Math.max(1, Math.min(limit, 200));
+        // Shanghai main board + STAR + Shenzhen main board + ChiNext
+        const fs = 'm:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23';
+        const fields = 'f2,f3,f4,f5,f6,f8,f12,f13,f14';
+        const url = `${LIST_URL}?pn=1&pz=${size}&po=1&np=1&fltt=2&invt=2&fid=f3&fs=${encodeURIComponent(fs)}&fields=${fields}`;
+        const payload = await fetchJson<EastmoneyListResponse>(url, context, { headers: EASTMONEY_HEADERS });
+
+        return listRows(payload).flatMap((row) => {
+            const code = row.f12;
+            const name = row.f14;
+            const price = toNumber(row.f2);
+            const market = String(row.f13 ?? '');
+            if (!code || !name || price === undefined || price <= 0) return [];
+            const rowMarket = market === '1' ? 'SH' : 'SZ';
+            const item: AShareMarketRow = {
+                symbol: `${code}.${rowMarket}`,
+                name,
+                price,
+                changePercent: toNumber(row.f3) ?? 0,
+                change: toNumber(row.f4) ?? 0,
+                volume: toNumber(row.f5),
+                amount: toNumber(row.f6),
+                turnover: toNumber(row.f8),
+                provider: 'eastmoney',
+            };
+            return [item];
         });
     },
 };

@@ -36,7 +36,7 @@ export async function fetchJson<T>(
         return JSON.parse(text) as T;
     }
 
-    const jsonp = text.match(/^[\w$.]+\((.*)\);?$/s);
+    const jsonp = text.match(/^[\w$.]+\(([\s\S]*)\);?$/);
     if (jsonp) return JSON.parse(jsonp[1]) as T;
     throw new Error(`Invalid JSON response from ${new URL(url).hostname}`);
 }

@@ -5,9 +5,10 @@ import { formatSymbolForTradingView } from '@/lib/utils';
 
 interface TradingViewWatchlistProps {
     symbols: string[];
+    locale?: string;
 }
 
-function TradingViewWatchlist({ symbols }: TradingViewWatchlistProps) {
+function TradingViewWatchlist({ symbols, locale = 'zh_CN' }: TradingViewWatchlistProps) {
     const container = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -42,11 +43,11 @@ function TradingViewWatchlist({ symbols }: TradingViewWatchlistProps) {
             "showSymbolLogo": true,
             "isTransparent": true,
             "colorTheme": "dark", // We can make this dynamic if needed
-            "locale": "zh_CN"
+            "locale": locale
         });
 
         container.current.appendChild(script);
-    }, [symbols]);
+    }, [symbols, locale]);
 
     return (
         <div className="tradingview-widget-container border border-white/10 rounded-xl overflow-hidden shadow-2xl bg-black/40 backdrop-blur-md" ref={container}>

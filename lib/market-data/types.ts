@@ -1,4 +1,5 @@
-export type AShareProviderName = 'eastmoney' | 'tencent' | 'sina' | 'astock';
+export type AShareProviderName = 'eastmoney' | 'eastmoney-flash' | 'tencent' | 'sina' | 'astock';
+export type BoardKind = 'industry' | 'concept';
 export type AShareMarket = 'SH' | 'SZ';
 export type AShareExchange = 'SSE' | 'SZSE';
 
@@ -64,6 +65,33 @@ export interface AShareKlineBar {
     provider: AShareProviderName;
 }
 
+export interface AShareBoard {
+    code: string;
+    name: string;
+    changePercent: number;
+    price?: number;
+    turnover?: number;
+    leaderName?: string;
+    leaderSymbol?: string;
+    leaderChangePercent?: number;
+    upCount?: number;
+    downCount?: number;
+    kind: BoardKind;
+    provider: AShareProviderName;
+}
+
+export interface AShareMarketRow {
+    symbol: string;
+    name: string;
+    price: number;
+    changePercent: number;
+    change: number;
+    volume?: number;
+    amount?: number;
+    turnover?: number;
+    provider: AShareProviderName;
+}
+
 export interface ProviderContext {
     signal?: AbortSignal;
     timeoutMs?: number;
@@ -79,6 +107,9 @@ export interface AShareProvider {
         options: { limit?: number; start?: string; end?: string },
         context: ProviderContext,
     ) => Promise<AShareKlineBar[]>;
+    boards?: (kind: BoardKind, context: ProviderContext) => Promise<AShareBoard[]>;
+    marketSnapshot?: (context: ProviderContext, limit?: number) => Promise<AShareMarketRow[]>;
+    news?: (context: ProviderContext, limit?: number) => Promise<MarketNewsArticle[]>;
 }
 
 export interface ProviderResult<T> {

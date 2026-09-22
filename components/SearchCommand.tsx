@@ -7,8 +7,9 @@ import {Loader2,  TrendingUp} from "lucide-react";
 import Link from "next/link";
 import {searchStocks} from "@/lib/actions/finnhub.actions";
 import {useDebounce} from "@/hooks/useDebounce";
+import type { Market } from "@/lib/market-data/market";
 
-export default function SearchCommand({ renderAs = 'button', label = '添加股票', initialStocks }: SearchCommandProps) {
+export default function SearchCommand({ renderAs = 'button', label = '添加股票', initialStocks, market = 'cn' }: SearchCommandProps & { market?: Market }) {
     const [open, setOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [loading, setLoading] = useState(false)
@@ -33,7 +34,7 @@ export default function SearchCommand({ renderAs = 'button', label = '添加股�
 
         setLoading(true)
         try {
-            const results = await searchStocks(searchTerm.trim());
+            const results = await searchStocks(searchTerm.trim(), market);
             setStocks(results);
         } catch {
             setStocks([])
@@ -46,7 +47,7 @@ export default function SearchCommand({ renderAs = 'button', label = '添加股�
 
     useEffect(() => {
         debouncedSearch();
-    }, [debouncedSearch, searchTerm]);
+    }, [debouncedSearch, searchTerm, market]);
 
     const handleSelectStock = () => {
         setOpen(false);
@@ -71,7 +72,7 @@ export default function SearchCommand({ renderAs = 'button', label = '添加股�
             )}
             <CommandDialog open={open} onOpenChange={setOpen} className="search-dialog">
                 <div className="search-field">
-                    <CommandInput value={searchTerm} onValueChange={setSearchTerm} placeholder="搜索股票、代码或拼音..." className="search-input" />
+                    <CommandInput value={searchTerm} onValueChange={setSearchTerm} placeholder={market === 'cn' ? "搜索 A 股名称、代码或拼音..." : "搜索美股 / 全球股票代码..."} className="search-input" />
                     {loading && <Loader2 className="search-loader" />}
                 </div>
                 <CommandList className="search-list">

@@ -3,6 +3,7 @@
 import React from "react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
+import { zhCN } from "date-fns/locale";
 import { ExternalLink } from "lucide-react";
 
 interface NewsGridProps {
@@ -41,7 +42,7 @@ export default function NewsGrid({ news }: NewsGridProps) {
                             <div className="flex items-center justify-between text-[10px] text-gray-600 mt-auto">
                                 <span>{item.source}</span>
                                 <span>
-                                    {item.datetime ? formatDistanceToNow(item.datetime * 1000, { addSuffix: true }) : ''}
+                                    {item.datetime ? formatDistanceToNow(item.datetime * 1000, { addSuffix: true, locale: zhCN }) : ''}
                                 </span>
                             </div>
                         </div>

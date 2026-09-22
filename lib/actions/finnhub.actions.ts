@@ -4,7 +4,9 @@ import { getDateRange, validateArticle, formatArticle } from '@/lib/utils';
 import { POPULAR_A_SHARE_SYMBOLS, POPULAR_STOCK_SYMBOLS } from '@/lib/constants';
 import { cache } from 'react';
 import { getAShareProfile, getAShareQuote, searchAShares } from '@/lib/market-data/a-share';
+import type { AShareSearchResult } from '@/lib/market-data/types';
 import { isAShareSymbol } from '@/lib/market-data/symbols';
+import { parseMarket, type Market } from '@/lib/market-data/market';
 import { fetchWithTimeout } from '@/lib/market-data/http';
 
 const FINNHUB_BASE_URL = process.env.FINNHUB_BASE_URL ?? 'https://finnhub.io/api/v1';
@@ -132,7 +134,15 @@ export async function getWatchlistData(symbols: string[]) {
 }
 
 
-export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> {
+export async function getNews(
+    symbols?: string[],
+    market: Market = 'us',
+): Promise<MarketNewsArticle[]> {
+    if (market === 'cn') {
+        const { getAShareNews } = await import('@/lib/market-data/a-share');
+        return (await getAShareNews(12)).data;
+    }
+
     try {
         const range = getDateRange(5);
         const token = NEXT_PUBLIC_FINNHUB_API_KEY;
@@ -208,7 +218,10 @@ export async function getNews(symbols?: string[]): Promise<MarketNewsArticle[]> 
     }
 }
 
-export const searchStocks = cache(async (query?: string): Promise<StockWithWatchlistStatus[]> => {
+export const searchStocks = cache(async (
+    query?: string,
+    market: Market = parseMarket(undefined),
+): Promise<StockWithWatchlistStatus[]> => {
     try {
         const token = NEXT_PUBLIC_FINNHUB_API_KEY;
         if (!token) {
@@ -218,6 +231,9 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
         const trimmed = typeof query === 'string' ? query.trim() : '';
         let aShareResults: StockWithWatchlistStatus[] = [];
         let results: SearchStockCandidate[] = [];
+
+        const wantsAShare = market === 'cn';
+        const wantsGlobal = market === 'us';
 
         if (!trimmed) {
             const aShareProfiles = await Promise.allSettled(
@@ -238,7 +254,7 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
             }).filter((item) => Boolean(item.symbol));
 
             // Fetch top 10 popular US/global symbols' profiles when Finnhub is configured.
-            const top = token ? POPULAR_STOCK_SYMBOLS.slice(0, 10) : [];
+            const top = token && wantsGlobal ? POPULAR_STOCK_SYMBOLS.slice(0, 10) : [];
             const profiles = await Promise.all(
                 top.map(async (sym) => {
                     try {
@@ -273,19 +289,21 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
         } else {
             const emptyResponse: FinnhubSearchResponse = { count: 0, result: [] };
             const [finhubResult, aShareResult] = await Promise.allSettled([
-                token
+                token && wantsGlobal && !isAShareSymbol(trimmed)
                     ? fetchJSON<FinnhubSearchResponse>(
                         `${FINNHUB_BASE_URL}/search?q=${encodeURIComponent(trimmed)}&token=${token}`,
                         1800,
                     )
                     : Promise.resolve(emptyResponse),
-                searchAShares(trimmed),
+                wantsAShare || isAShareSymbol(trimmed)
+                    ? searchAShares(trimmed)
+                    : Promise.resolve({ data: [] as AShareSearchResult[] }),
             ]);
 
             const data = finhubResult.status === 'fulfilled' ? finhubResult.value : emptyResponse;
             results = Array.isArray(data?.result) ? data.result : [];
 
-            if (aShareResult.status === 'fulfilled') {
+            if (aShareResult.status === 'fulfilled' && aShareResult.value.data.length > 0) {
                 aShareResults = aShareResult.value.data.map((item) => ({
                     symbol: item.symbol,
                     name: item.name,
@@ -313,6 +331,7 @@ export const searchStocks = cache(async (query?: string): Promise<StockWithWatch
                 return item;
             }))
             .filter((item, index, all) => all.findIndex((candidate) => candidate.symbol === item.symbol) === index)
+            .filter((item) => (wantsAShare ? isAShareSymbol(item.symbol) : !isAShareSymbol(item.symbol)))
             .slice(0, 15);
 
         return mapped;

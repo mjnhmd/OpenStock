@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext } from 'react'
 import {NAV_ITEMS} from "@/lib/constants";
+import type { Market } from "@/lib/market-data/market";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import SearchCommand from "@/components/SearchCommand";
@@ -18,7 +19,7 @@ const DonatePopupContext = createContext<{
 
 export const useDonatePopup = () => useContext(DonatePopupContext);
 
-const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]}) => {
+const NavItems = ({initialStocks, market}: { initialStocks: StockWithWatchlistStatus[]; market: Market }) => {
     const pathname = usePathname()
 
     const isActive = (path: string) => {
@@ -42,6 +43,7 @@ const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]})
                             renderAs="text"
                             label="搜索"
                             initialStocks={initialStocks}
+                            market={market}
                         />
                     </li>
                 )
