@@ -92,6 +92,17 @@ export interface AShareMarketRow {
     provider: AShareProviderName;
 }
 
+export interface AShareHeatmapRow {
+    symbol: string;
+    name: string;
+    price: number;
+    changePercent: number;
+    marketCap: number;
+    floatMarketCap: number;
+    industry: string;
+    provider: AShareProviderName;
+}
+
 export interface ProviderContext {
     signal?: AbortSignal;
     timeoutMs?: number;
@@ -109,6 +120,7 @@ export interface AShareProvider {
     ) => Promise<AShareKlineBar[]>;
     boards?: (kind: BoardKind, context: ProviderContext) => Promise<AShareBoard[]>;
     marketSnapshot?: (context: ProviderContext, limit?: number) => Promise<AShareMarketRow[]>;
+    heatmapSnapshot?: (context: ProviderContext) => Promise<AShareHeatmapRow[]>;
     news?: (context: ProviderContext, limit?: number) => Promise<MarketNewsArticle[]>;
 }
 

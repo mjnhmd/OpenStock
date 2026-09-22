@@ -1,6 +1,7 @@
 import { fetchJson } from '../http';
 import type {
     AShareBoard,
+    AShareHeatmapRow,
     AShareKlineBar,
     AShareMarketRow,
     AShareProvider,
@@ -45,6 +46,9 @@ interface EastmoneyKlineResponse {
 
 interface EastmoneyListRow {
     f2?: number | string;
+    f20?: number | string;
+    f21?: number | string;
+    f100?: string;
     f3?: number | string;
     f4?: number | string;
     f5?: number | string;
@@ -239,6 +243,10 @@ export const eastmoneyProvider: AShareProvider = {
         });
     },
 
+    async heatmapSnapshot(context: ProviderContext): Promise<AShareHeatmapRow[]> {
+        return fetchEastmoneyHeatmap(context);
+    },
+
     async marketSnapshot(context: ProviderContext, limit = 50): Promise<AShareMarketRow[]> {
         const size = Math.max(1, Math.min(limit, 200));
         // Shanghai main board + STAR + Shenzhen main board + ChiNext
@@ -269,3 +277,60 @@ export const eastmoneyProvider: AShareProvider = {
         });
     },
 };
+
+const HEATMAP_PAGE_SIZE = 100;
+const HEATMAP_CONCURRENCY = 8;
+const A_SHARE_MARKET_FS = 'm:0+t:6,m:0+t:80,m:1+t:2,m:1+t:23';
+const HEATMAP_FIELDS = 'f12,f13,f14,f2,f3,f20,f21,f100';
+
+async function fetchHeatmapPage(
+    pageNumber: number,
+    context: ProviderContext,
+): Promise<{ total: number; rows: EastmoneyListRow[] }> {
+    const url = `${LIST_URL}?pn=${pageNumber}&pz=${HEATMAP_PAGE_SIZE}&po=1&np=1&fltt=2&invt=2`
+        + `&fid=f20&fs=${encodeURIComponent(A_SHARE_MARKET_FS)}&fields=${HEATMAP_FIELDS}`;
+    const payload = await fetchJson<EastmoneyListResponse>(url, context, { headers: EASTMONEY_HEADERS });
+    return { total: payload.data?.total ?? 0, rows: listRows(payload) };
+}
+
+export async function fetchEastmoneyHeatmap(context: ProviderContext = {}): Promise<AShareHeatmapRow[]> {
+    const first = await fetchHeatmapPage(1, context);
+    if (first.rows.length === 0) throw new Error('Eastmoney heatmap returned no rows');
+
+    const pageCount = Math.max(1, Math.ceil(first.total / HEATMAP_PAGE_SIZE));
+    const remainingPages: number[] = [];
+    for (let page = 2; page <= pageCount; page += 1) remainingPages.push(page);
+
+    const rest: EastmoneyListRow[] = [];
+    for (let i = 0; i < remainingPages.length; i += HEATMAP_CONCURRENCY) {
+        const batch = remainingPages.slice(i, i + HEATMAP_CONCURRENCY);
+        const settled = await Promise.allSettled(
+            batch.map((page) => fetchHeatmapPage(page, context)),
+        );
+        for (const result of settled) {
+            if (result.status === 'fulfilled') rest.push(...result.value.rows);
+        }
+    }
+
+    const all = first.rows.concat(rest);
+    return all.flatMap((row) => {
+        const code = row.f12;
+        const name = row.f14;
+        const price = toNumber(row.f2);
+        const marketCap = toNumber(row.f20);
+        if (!code || !name || price === undefined || price <= 0 || !marketCap || marketCap <= 0) return [];
+
+        const market = String(row.f13 ?? '') === '1' ? 'SH' : 'SZ';
+        const item: AShareHeatmapRow = {
+            symbol: `${code}.${market}`,
+            name,
+            price,
+            changePercent: toNumber(row.f3) ?? 0,
+            marketCap,
+            floatMarketCap: toNumber(row.f21) ?? marketCap,
+            industry: row.f100 && row.f100 !== '-' ? row.f100 : '其他',
+            provider: 'eastmoney',
+        };
+        return [item];
+    });
+}

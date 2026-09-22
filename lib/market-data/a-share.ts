@@ -9,6 +9,7 @@ import { normalizeAShareSymbol } from './symbols';
 import { POPULAR_A_SHARE_SYMBOLS } from '@/lib/constants';
 import type {
     AShareBoard,
+    AShareHeatmapRow,
     AShareKlineBar,
     AShareMarketRow,
     BoardKind,
@@ -284,5 +285,28 @@ export async function getAShareNews(
         validate: (articles) => Array.isArray(articles) && articles.length > 0,
         freshTtlMs: 5 * 60_000,
         staleTtlMs: 6 * 60 * 60_000,
+    });
+}
+
+const HEATMAP_PROVIDERS: AShareProvider[] = unofficialProvidersEnabled ? [eastmoneyProvider] : [];
+
+export async function getAShareHeatmap(
+    context: ProviderContext = {},
+): Promise<ProviderResult<AShareHeatmapRow[]>> {
+    return withProviderFallback<AShareHeatmapRow[]>({
+        namespace: 'a-share:heatmap',
+        cacheKey: 'all',
+        operation: 'heatmapSnapshot',
+        symbolOrQuery: '全A',
+        providers: HEATMAP_PROVIDERS,
+        run: async (provider) => {
+            if (!provider.heatmapSnapshot) {
+                throw new Error(`${provider.name} does not support heatmapSnapshot`);
+            }
+            return provider.heatmapSnapshot(context);
+        },
+        validate: (rows) => Array.isArray(rows) && rows.length > 500,
+        freshTtlMs: 5 * 60_000,
+        staleTtlMs: 60 * 60_000,
     });
 }

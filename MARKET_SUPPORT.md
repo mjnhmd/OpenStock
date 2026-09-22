@@ -107,6 +107,7 @@ all accepted and collapse to the same canonical symbol:
 | Quote | Eastmoney `push2` | Tencent `qt.gtimg.cn` | Sina `hq.sinajs.cn` | local `astock` |
 | Profile | Eastmoney `push2` | Tencent `qt.gtimg.cn` | Sina `hq.sinajs.cn` | local `astock` |
 | Daily K-line | Eastmoney `push2his` | Tencent `fqkline` | local `astock` (BaoStock, EOD) | — |
+| Whole-market stock heatmap | Eastmoney `clist` (56 paginated pages) | served from stale cache | — | — |
 | Industry/concept boards | Eastmoney `clist` | served from stale cache | — | — |
 | Market gainers snapshot | Eastmoney `clist` | curated blue-chip quotes | — | — |
 | A-share news | Eastmoney `getNewsByColumns` (col 349) | Tencent CSI300 feed (`type=2`) | Eastmoney 7x24 `getFastNewsList` | stale cache |
@@ -143,6 +144,11 @@ choice is persisted in the `openstock_market` cookie and applies to:
 
 A-share mode renders its own heatmap, board lists, movers table and news grid
 from the providers above, so it does not depend on TradingView's China coverage.
+The stock heatmap pulls the whole market (~5,200 tradable names) in 56 paginated
+`clist` requests with a concurrency of 8, measured at ~600ms end to end, then
+caches for 5 minutes. It is drawn on a Canvas as a binary-split treemap: area is
+weighted by float market cap, colour by daily change, grouped by industry, and
+the tiles are clickable through to the stock page.
 TradingView is still used for an individual A-share symbol's chart, which is
 addressable as `SSE:600519` / `SZSE:000001`.
 

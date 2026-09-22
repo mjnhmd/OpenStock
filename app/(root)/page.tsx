@@ -2,6 +2,7 @@ import TradingViewWidget from "@/components/TradingViewWidget";
 import SectorHeatmap from "@/components/market/SectorHeatmap";
 import MarketContextBar from "@/components/market/MarketContextBar";
 import MarketMovers from "@/components/market/MarketMovers";
+import StockHeatmap from "@/components/market/StockHeatmap";
 import NewsGrid from "@/components/watchlist/NewsGrid";
 import {
     HEATMAP_WIDGET_CONFIG,
@@ -12,10 +13,12 @@ import {
 import { getActiveMarket } from "@/lib/market-data/market-server";
 import {
     getAShareBoards,
+    getAShareHeatmap,
     getAShareMarketMovers,
     getAShareNews,
 } from "@/lib/market-data/a-share";
-import type { AShareBoard, AShareMarketRow } from "@/lib/market-data/types";
+import type { AShareBoard, AShareHeatmapRow, AShareMarketRow } from "@/lib/market-data/types";
+import { buildHeatmapPayload } from "@/lib/market-data/heatmap-layout";
 
 const SCRIPT_URL = "https://s3.tradingview.com/external-embedding/embed-widget-";
 
@@ -62,20 +65,32 @@ async function USMarketDashboard() {
 }
 
 async function AShareDashboard() {
-    const [industry, concept, movers, news] = await Promise.allSettled([
+    const [heatmap, industry, concept, movers, news] = await Promise.allSettled([
+        getAShareHeatmap(),
         getAShareBoards('industry'),
         getAShareBoards('concept'),
         getAShareMarketMovers(40),
         getAShareNews(9),
     ]);
 
+    const heatmapRows: AShareHeatmapRow[] = heatmap.status === 'fulfilled' ? heatmap.value.data : [];
     const industryBoards: AShareBoard[] = industry.status === 'fulfilled' ? industry.value.data : [];
     const conceptBoards: AShareBoard[] = concept.status === 'fulfilled' ? concept.value.data : [];
     const moverRows: AShareMarketRow[] = movers.status === 'fulfilled' ? movers.value.data : [];
     const newsItems = news.status === 'fulfilled' ? news.value.data : [];
+    const heatmapPayload = buildHeatmapPayload(heatmapRows);
 
     return (
         <div className="flex min-h-screen home-wrapper">
+            <section className="w-full">
+                <StockHeatmap
+                    title="个股热力图（全 A）"
+                    payload={heatmapPayload}
+                    height={660}
+                    emptyText="暂时无法获取全 A 个股数据，请稍后重试"
+                />
+            </section>
+
             <section className="grid w-full gap-8 home-section">
                 <div className="md:col-span-1 xl:col-span-2">
                     <SectorHeatmap

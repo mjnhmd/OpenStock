@@ -126,7 +126,8 @@ Language composition
     - Search, quote, profile and daily K-line for Shanghai / Shenzhen listings
     - Multi-provider fallback with circuit breaker and explicit stale cache
     - Canonical symbols (`600519.SH`, `000001.SZ`) with alias normalization
-    - A-share industry/concept heatmaps, gainers board and A-share news feed
+    - A-share stock heatmap (whole market, Canvas treemap by float market cap)
+    - A-share industry/concept board heatmaps, gainers board and A-share news feed
     - See [MARKET_SUPPORT.md](./MARKET_SUPPORT.md) for provider chains and the
       licensing boundary before any public deployment
 - Market switch (A-share / US)
@@ -500,6 +501,8 @@ OpenStock is and will remain free and open for everyone. This project is license
 
 - Finnhub for accessible market data
 - TradingView for embeddable market widgets
+- [wenyuanw/a-share-heatmap](https://github.com/wenyuanw/a-share-heatmap) (MIT) for
+  the binary-split Canvas treemap approach and the level-1 industry grouping idea
 - shadcn/ui, Radix UI, Tailwind CSS, Next.js community
 - Inngest for dependable background jobs and workflows
 - Better Auth for simple and secure authentication

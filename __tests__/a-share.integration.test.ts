@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { describe, expect, it } from 'vitest';
 import {
     getAShareBoards,
+    getAShareHeatmap,
     getAShareKline,
     getAShareMarketMovers,
     getAShareNews,
@@ -45,6 +46,16 @@ describe.runIf(runIntegration)('A-share provider integration', () => {
         expect(result.data.length).toBeGreaterThan(10);
         expect(result.data.every((board) => board.code.startsWith('BK'))).toBe(true);
         expect(typeof result.data[0].changePercent).toBe('number');
+    });
+
+    it('returns a full-market stock heatmap with market cap and industry', async () => {
+        const result = await getAShareHeatmap();
+        expect(result.data.length).toBeGreaterThan(3000);
+        expect(result.data.every((row) => row.marketCap > 0)).toBe(true);
+        expect(result.data.every((row) => row.industry.length > 0)).toBe(true);
+        expect(result.data.every((row) => /^[0-9]{6}\.(SH|SZ)$/.test(row.symbol))).toBe(true);
+        const industries = new Set(result.data.map((row) => row.industry));
+        expect(industries.size).toBeGreaterThan(30);
     });
 
     it('returns concept boards', async () => {
