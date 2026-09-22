@@ -35,14 +35,14 @@ function TradingViewWatchlist({ symbols }: TradingViewWatchlistProps) {
             "height": 550,
             "symbolsGroups": [
                 {
-                    "name": "My Watchlist",
+                    "name": "我的自选",
                     "symbols": symbolList
                 }
             ],
             "showSymbolLogo": true,
             "isTransparent": true,
             "colorTheme": "dark", // We can make this dynamic if needed
-            "locale": "en"
+            "locale": "zh_CN"
         });
 
         container.current.appendChild(script);

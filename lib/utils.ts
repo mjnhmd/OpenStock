@@ -12,12 +12,11 @@ export const formatTimeAgo = (timestamp: number) => {
     const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
 
     if (diffInHours > 24) {
-        const days = Math.floor(diffInHours / 24);
-        return `${days} day${days > 1 ? 's' : ''} ago`;
+        return `${Math.floor(diffInHours / 24)} 天前`;
     } else if (diffInHours >= 1) {
-        return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+        return `${diffInHours} 小时前`;
     } else {
-        return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+        return `${Math.max(diffInMinutes, 1)} 分钟前`;
     }
 };
 
@@ -26,13 +25,20 @@ export function delay(ms: number) {
 }
 
 // Formatted string like "$3.10T", "$900.00B", "$25.00M" or "$999999.99"
-export function formatMarketCapValue(marketCapUsd: number): string {
-    if (!Number.isFinite(marketCapUsd) || marketCapUsd <= 0) return 'N/A';
+export function formatMarketCapValue(marketCap: number, currency = 'USD'): string {
+    if (!Number.isFinite(marketCap) || marketCap <= 0) return currency === 'CNY' ? '暂无' : 'N/A';
 
-    if (marketCapUsd >= 1e12) return `$${(marketCapUsd / 1e12).toFixed(2)}T`; // Trillions
-    if (marketCapUsd >= 1e9) return `$${(marketCapUsd / 1e9).toFixed(2)}B`; // Billions
-    if (marketCapUsd >= 1e6) return `$${(marketCapUsd / 1e6).toFixed(2)}M`; // Millions
-    return `$${marketCapUsd.toFixed(2)}`; // Below one million, show full USD amount
+    if (currency === 'CNY') {
+        if (marketCap >= 1e12) return `¥${(marketCap / 1e12).toFixed(2)}万亿`;
+        if (marketCap >= 1e8) return `¥${(marketCap / 1e8).toFixed(2)}亿`;
+        if (marketCap >= 1e4) return `¥${(marketCap / 1e4).toFixed(2)}万`;
+        return `¥${marketCap.toFixed(2)}`;
+    }
+
+    if (marketCap >= 1e12) return `$${(marketCap / 1e12).toFixed(2)}T`;
+    if (marketCap >= 1e9) return `$${(marketCap / 1e9).toFixed(2)}B`;
+    if (marketCap >= 1e6) return `$${(marketCap / 1e6).toFixed(2)}M`;
+    return `$${marketCap.toFixed(2)}`;
 }
 
 export const getDateRange = (days: number) => {
@@ -108,10 +114,11 @@ export const getChangeColorClass = (changePercent?: number) => {
     return changePercent > 0 ? 'text-green-500' : 'text-red-500';
 };
 
-export const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+export const formatPrice = (price: number, currency = 'USD') => {
+    const locale = currency === 'CNY' ? 'zh-CN' : 'en-US';
+    return new Intl.NumberFormat(locale, {
         style: 'currency',
-        currency: 'USD',
+        currency,
         minimumFractionDigits: 2,
     }).format(price);
 };
@@ -132,7 +139,7 @@ export function formatNumber(num: number): string {
     return value.toString();
 }
 
-export const formatDateToday = new Date().toLocaleDateString('en-US', {
+export const formatDateToday = new Date().toLocaleDateString('zh-CN', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -142,11 +149,11 @@ export const formatDateToday = new Date().toLocaleDateString('en-US', {
 
 
 export const getAlertText = (alert: Alert) => {
-    const condition = alert.alertType === 'upper' ? '>' : '<';
-    return `Price ${condition} ${formatPrice(alert.threshold)}`;
+    const condition = alert.alertType === 'upper' ? '高于' : '低于';
+    return `价格${condition} ${formatPrice(alert.threshold, 'CNY')}`;
 };
 
-export const getFormattedTodayDate = () => new Date().toLocaleDateString('en-US', {
+export const getFormattedTodayDate = () => new Date().toLocaleDateString('zh-CN', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -165,7 +172,8 @@ const FINNHUB_TO_TRADINGVIEW_EXCHANGE: Record<string, string> = {
     '.TWO': 'TPEX',  // Taiwan OTC Exchange
     '.T': 'TSE',     // Tokyo Stock Exchange
     '.HK': 'HKEX',   // Hong Kong
-    '.SS': 'SSE',    // Shanghai
+    '.SH': 'SSE',    // Shanghai
+    '.SS': 'SSE',    // Shanghai (Finnhub alias)
     '.SZ': 'SZSE',   // Shenzhen
     '.KS': 'KRX',    // Korea Exchange
     '.KQ': 'KRX',    // KOSDAQ (Korea)

@@ -40,7 +40,7 @@ const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]})
                     <li key="search-trigger">
                         <SearchCommand
                             renderAs="text"
-                            label="Search"
+                            label="搜索"
                             initialStocks={initialStocks}
                         />
                     </li>
@@ -58,7 +58,7 @@ const NavItems = ({initialStocks}: { initialStocks: StockWithWatchlistStatus[]})
                     size="sm"
                 >
                     <Heart className="h-4 w-4 fill-current" />
-                    Donate
+                    支持我们
                 </Button>
             </li>
         </ul>

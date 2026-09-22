@@ -122,6 +122,14 @@ Language composition
     - Popular stocks when idle; debounced querying
 - Watchlist
     - Per-user watchlist stored in MongoDB (unique symbol per user)
+- A-share support (China)
+    - Search, quote, profile and daily K-line for Shanghai / Shenzhen listings
+    - Multi-provider fallback with circuit breaker and explicit stale cache
+    - Canonical symbols (`600519.SH`, `000001.SZ`) with alias normalization
+    - See [MARKET_SUPPORT.md](./MARKET_SUPPORT.md) for provider chains and the
+      licensing boundary before any public deployment
+- Simplified Chinese UI
+    - `zh-CN` by default, CNY formatting for A-shares, TradingView locale `zh_CN`
 - Stock details
     - TradingView symbol info, candlestick/advanced charts, baseline, technicals
     - Company profile and financials widgets
@@ -145,6 +153,9 @@ Prerequisites
 - Node.js 20+ and pnpm or npm
 - MongoDB connection string (MongoDB Atlas or local via Docker Compose)
 - Finnhub API key (free tier supported; real-time may require paid)
+- A-share data requires **no** extra API key; it uses the built-in multi-provider
+  chain (`ENABLE_UNOFFICIAL_MARKET_DATA`). Read the licensing boundary in
+  [MARKET_SUPPORT.md](./MARKET_SUPPORT.md) before deploying publicly.
 - Gmail account for email (or update Nodemailer transport)
 - Optional: Google Gemini API key (for AI-generated welcome intros)
 
@@ -265,6 +276,13 @@ BETTER_AUTH_URL=http://localhost:3000
 NEXT_PUBLIC_FINNHUB_API_KEY=your_finnhub_key
 FINNHUB_BASE_URL=https://finnhub.io/api/v1
 
+# A-share market data
+# Enables the unofficial A-share providers (Eastmoney / Tencent / Sina) plus an
+# optional local astock (BaoStock) fallback. Local/personal use only.
+ENABLE_UNOFFICIAL_MARKET_DATA=true
+# Optional final EOD fallback; leave empty to disable
+ASTOCK_BIN=
+
 # Sentiment insights (optional)
 ADANOS_API_KEY=your_adanos_api_key
 # ADANOS_API_BASE_URL=https://api.adanos.org
@@ -305,6 +323,13 @@ BETTER_AUTH_URL=http://localhost:3000
 # Note: NEXT_PUBLIC_FINNHUB_API_KEY is required for Vercel deployment
 NEXT_PUBLIC_FINNHUB_API_KEY=your_finnhub_key
 FINNHUB_BASE_URL=https://finnhub.io/api/v1
+
+# A-share market data
+# Enables the unofficial A-share providers (Eastmoney / Tencent / Sina) plus an
+# optional local astock (BaoStock) fallback. Local/personal use only.
+ENABLE_UNOFFICIAL_MARKET_DATA=true
+# Optional final EOD fallback; leave empty to disable
+ASTOCK_BIN=
 
 # Sentiment insights (optional)
 ADANOS_API_KEY=your_adanos_api_key
@@ -432,7 +457,13 @@ Package scripts
 - `build`: Production build (Turbopack)
 - `start`: Run production server
 - `lint`: ESLint
+- `test`: Unit tests (symbol normalization, provider fallback, formatting)
 - `test:db`: Validate DB connectivity
+- `test:market`: Live A-share provider smoke test (network required)
+
+Inngest dev server note: use `npx inngest-cli@1.19.1 dev`. The current `latest`
+CLI rejects the pinning of the `inngest` SDK used by this app with
+`sdk_version_denied`, which leaves every workflow unregistered.
 
 Developer experience
 - TypeScript strict mode

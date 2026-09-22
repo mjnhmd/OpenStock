@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowUp, ArrowDown, Bell } from "lucide-react";
 import CreateAlertModal from "./CreateAlertModal";
 import WatchlistButton from "@/components/WatchlistButton";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatMarketCapValue } from "@/lib/utils";
 import { removeFromWatchlist } from "@/lib/actions/watchlist.actions";
 
 interface WatchlistTableProps {
@@ -64,8 +64,8 @@ export default function WatchlistTable({ data, userId, onRefresh }: WatchlistTab
     if (!stocks || stocks.length === 0) {
         return (
             <div className="text-center py-12 bg-gray-900/50 rounded-lg border border-gray-800">
-                <h3 className="text-xl font-medium text-gray-300 mb-2">Your watchlist is empty</h3>
-                <p className="text-gray-500 mb-6">Add stocks to track their performance and set alerts.</p>
+                <h3 className="text-xl font-medium text-gray-300 mb-2">自选股为空</h3>
+                <p className="text-gray-500 mb-6">添加股票后可跟踪表现并设置价格提醒。</p>
             </div>
         );
     }
@@ -75,12 +75,12 @@ export default function WatchlistTable({ data, userId, onRefresh }: WatchlistTab
             <table className="w-full text-left text-sm border-collapse">
                 <thead className="bg-white/5 text-gray-400 font-medium border-b border-white/10">
                     <tr>
-                        <th className="px-6 py-4 font-semibold tracking-wide">Company</th>
-                        <th className="px-6 py-4 font-semibold tracking-wide">Symbol</th>
-                        <th className="px-6 py-4 font-semibold tracking-wide">Price</th>
-                        <th className="px-6 py-4 font-semibold tracking-wide">Change</th>
-                        <th className="px-6 py-4 font-semibold tracking-wide">Market Cap</th>
-                        <th className="px-6 py-4 text-right font-semibold tracking-wide">Actions</th>
+                        <th className="px-6 py-4 font-semibold tracking-wide">公司</th>
+                        <th className="px-6 py-4 font-semibold tracking-wide">代码</th>
+                        <th className="px-6 py-4 font-semibold tracking-wide">价格</th>
+                        <th className="px-6 py-4 font-semibold tracking-wide">涨跌</th>
+                        <th className="px-6 py-4 font-semibold tracking-wide">市值</th>
+                        <th className="px-6 py-4 text-right font-semibold tracking-wide">操作</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-white/10">
@@ -115,7 +115,7 @@ export default function WatchlistTable({ data, userId, onRefresh }: WatchlistTab
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-white font-medium text-base tracking-tight">
-                                    {formatCurrency(stock.price)}
+                                    {formatCurrency(stock.price, stock.currency || "USD")}
                                 </td>
                                 <td className={`px-6 py-4 font-medium`}>
                                     <div className={`flex items-center w-fit px-2 py-1 rounded-md ${isPositive ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}>
@@ -124,7 +124,7 @@ export default function WatchlistTable({ data, userId, onRefresh }: WatchlistTab
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 text-gray-400 font-medium">
-                                    {formatNumber(stock.marketCap)}
+                                    {formatMarketCapValue(stock.marketCap, stock.currency || "USD")}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end space-x-3 opacity-80 group-hover:opacity-100 transition-opacity">
@@ -132,9 +132,10 @@ export default function WatchlistTable({ data, userId, onRefresh }: WatchlistTab
                                             userId={userId}
                                             symbol={stock.symbol}
                                             currentPrice={stock.price}
+                                            currency={stock.currency || "USD"}
                                             onAlertCreated={onRefresh}
                                         >
-                                            <button className="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/10" title="Add Alert">
+                                            <button className="p-2.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all border border-transparent hover:border-white/10" title="创建价格提醒">
                                                 <Bell className="w-4.5 h-4.5" />
                                             </button>
                                         </CreateAlertModal>

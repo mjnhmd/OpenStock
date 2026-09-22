@@ -3,6 +3,7 @@
 import React from "react";
 import { Trash2, TrendingUp, Bell } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { isAShareSymbol } from "@/lib/market-data/symbols";
 import { deleteAlert } from "@/lib/actions/alert.actions";
 
 interface AlertsPanelProps {
@@ -12,7 +13,7 @@ interface AlertsPanelProps {
 
 export default function AlertsPanel({ alerts, onRefresh }: AlertsPanelProps) {
     const handleDelete = async (id: string) => {
-        if (confirm("Are you sure you want to delete this alert?")) {
+        if (confirm("确定删除这条价格提醒吗？")) {
             await deleteAlert(id);
             if (onRefresh) onRefresh();
         }
@@ -23,7 +24,7 @@ export default function AlertsPanel({ alerts, onRefresh }: AlertsPanelProps) {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white flex items-center">
                     <Bell className="w-5 h-5 mr-2 text-yellow-500" />
-                    Alerts
+                    价格提醒
                 </h2>
                 {/* <button className="text-sm text-yellow-500 hover:underline">Create Alert</button> */}
             </div>
@@ -31,7 +32,7 @@ export default function AlertsPanel({ alerts, onRefresh }: AlertsPanelProps) {
             <div className="space-y-3">
                 {alerts.length === 0 ? (
                     <div className="text-center py-8 text-gray-500 text-sm">
-                        No active alerts. Add one from the watchlist.
+                        暂无价格提醒，请先从自选股中添加。
                     </div>
                 ) : (
                     alerts.map((alert) => (
@@ -44,14 +45,14 @@ export default function AlertsPanel({ alerts, onRefresh }: AlertsPanelProps) {
                                         </div>
                                         <div>
                                             <div className="font-bold text-white text-sm">{alert.symbol}</div>
-                                            <div className="text-xs text-gray-400">Target: {formatCurrency(alert.targetPrice)}</div>
+                                            <div className="text-xs text-gray-400">目标价：{formatCurrency(alert.targetPrice, isAShareSymbol(alert.symbol) ? "CNY" : "USD")}</div>
                                         </div>
                                     </div>
                                     <div className="mt-2 text-xs text-yellow-500 font-medium">
-                                        Condition: Price {alert.condition.toLowerCase()} {formatCurrency(alert.targetPrice)}
+                                        条件：价格 {alert.condition === "ABOVE" ? "高于" : "低于"} {formatCurrency(alert.targetPrice, isAShareSymbol(alert.symbol) ? "CNY" : "USD")}
                                     </div>
                                     <div className="text-[10px] text-gray-500 mt-1">
-                                        Active until {new Date(new Date(alert.createdAt).getTime() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                                        有效期至 {new Date(new Date(alert.createdAt).getTime() + 90 * 24 * 60 * 60 * 1000).toLocaleDateString("zh-CN")}
                                     </div>
                                 </div>
                                 <div className="flex flex-col space-y-2">

@@ -80,9 +80,69 @@ TradingView's free tier embeddable widgets have several restrictions:
 
 2. **Market-Specific**:
    - India NSE/BSE: Available but with delays
-   - Chinese A-shares: Not available in free tier
+   - Chinese A-shares: Not available on the free tier (verified: `/quote` returns
+     `You don't have access to this resource.` for `600519.SS`)
    - Forex: Not available
    - Cryptocurrencies: Not available
+
+## 🇨🇳 A-share Support
+
+A-shares are served by a dedicated provider layer (`lib/market-data/`) instead of
+Finnhub, because Finnhub's free tier has no A-share access. Each operation has its
+own fallback chain, a circuit breaker and an explicit stale-cache path.
+
+Symbols are normalized internally to `600519.SH` / `000001.SZ`. These aliases are
+all accepted and collapse to the same canonical symbol:
+
+```
+600519    sh600519    sh.600519    600519.SH    600519.SS
+000001    sz000001    sz.000001    000001.SZ
+```
+
+### Provider chains
+
+| Operation | Primary | Fallback 1 | Fallback 2 | Final fallback |
+| --- | --- | --- | --- | --- |
+| Search | Tencent `smartbox` | Sina `suggest` | Eastmoney `suggest` | local `astock` |
+| Quote | Eastmoney `push2` | Tencent `qt.gtimg.cn` | Sina `hq.sinajs.cn` | local `astock` |
+| Profile | Eastmoney `push2` | Tencent `qt.gtimg.cn` | Sina `hq.sinajs.cn` | local `astock` |
+| Daily K-line | Eastmoney `push2his` | Tencent `fqkline` | local `astock` (BaoStock, EOD) | — |
+
+Behavior guarantees:
+
+- Every provider call has an `AbortController` timeout; a slow provider cannot hang
+  an SSR request.
+- After 3 consecutive failures a provider's circuit opens for 60s and is skipped.
+- If every provider fails, a stale cached value may be served **only** with
+  `stale: true`. The UI renders it as `缓存数据` instead of pretending it is live.
+- If no provider and no cache is available the operation fails loudly; it never
+  returns `0` as a price.
+
+### Verification
+
+```bash
+npx astock search 贵州茅台 --format json     # local BaoStock/A-share CLI
+RUN_MARKET_INTEGRATION=1 npm run test:market # live provider smoke test
+```
+
+Expected: search resolves `贵州茅台` → `600519.SH`, quote returns a positive CNY
+price, profile returns the company name, and daily K-line returns bars.
+
+### ⚠️ Licensing and deployment boundary
+
+The Eastmoney, Tencent and Sina endpoints are **undocumented public endpoints**.
+They carry no SLA, grant no redistribution rights, and may rate-limit or change
+without notice. They are wired for **local / personal use only**.
+
+Before any public deployment you must either:
+
+1. Set `ENABLE_UNOFFICIAL_MARKET_DATA=false` and plug in a licensed provider
+   (Tushare Pro with the relevant permissions, Wind, Choice, iFinD, or a licensed
+   cloud market-data service), or
+2. obtain explicit redistribution rights for each upstream source.
+
+BaoStock (used by `astock`) is EOD-only and equally not licensed for redistribution,
+so it is a historical-data fallback, never a real-time source.
 
 ## 🔧 Troubleshooting
 

@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test:db": "node scripts/test-db.mjs",
     "test": "vitest run",
+    "test:market": "RUN_MARKET_INTEGRATION=1 vitest run __tests__/a-share.integration.test.ts",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -27,7 +28,7 @@
     "country-data-list": "^1.5.5",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
-    "inngest": "^3.47.0",
+    "inngest": "^3.54.2",
     "lucide-react": "^0.544.0",
     "mongodb": "^6.20.0",
     "mongoose": "^8.19.0",

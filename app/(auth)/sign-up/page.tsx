@@ -27,7 +27,7 @@ const SignUp = () => {
             fullName: '',
             email: '',
             password: '',
-            country: 'IN',
+            country: 'CN',
             investmentGoals: 'Growth',
             riskTolerance: 'Medium',
             preferredIndustry: 'Technology'
@@ -44,50 +44,50 @@ const SignUp = () => {
                 router.push('/');
                 return;
             }
-            toast.error('Sign up failed', {
-                description: result.error ?? 'We could not create your account.',
+            toast.error('注册失败', {
+                description: result.error ?? '无法创建账号，请稍后重试。',
             });
         } catch (e) {
             console.error(e);
-            toast.error('Sign up failed', {
-                description: e instanceof Error ? e.message : 'Failed to create an account.'
+            toast.error('注册失败', {
+                description: e instanceof Error ? e.message : '创建账号失败，请稍后重试。'
             })
         }
     }
 
     return (
         <>
-            <h1 className="form-title">Sign Up & Personalize</h1>
+            <h1 className="form-title">注册并设置偏好</h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <InputField
                     name="fullName"
-                    label="Full Name"
-                    placeholder="Enter full name"
+                    label="姓名"
+                    placeholder="请输入姓名"
                     register={register}
                     error={errors.fullName}
-                    validation={{ required: 'Full name is required', minLength: 2 }}
+                    validation={{ required: '请输入姓名', minLength: 2 }}
                 />
 
                 <InputField
                     name="email"
-                    label="Email"
+                    label="邮箱"
                     placeholder="opendevsociety@cc.cc"
                     register={register}
                     error={errors.email}
                     validation={{
-                        required: 'Email is required',
+                        required: '请输入邮箱',
                         pattern: {
                             value: /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/,
-                            message: 'Please enter a valid email address'
+                            message: '请输入有效邮箱地址'
                         }
                     }}
                 />
 
                 <InputField
                     name="password"
-                    label="Password"
-                    placeholder="Enter a strong password"
+                    label="密码"
+                    placeholder="请输入高强度密码"
                     type="password"
                     register={register}
                     error={errors.password}
@@ -97,7 +97,7 @@ const SignUp = () => {
 
                 <CountrySelectField
                     name="country"
-                    label="Country"
+                    label="国家/地区"
                     control={control}
                     error={errors.country}
                     required
@@ -105,8 +105,8 @@ const SignUp = () => {
 
                 <SelectField
                     name="investmentGoals"
-                    label="Investment Goals"
-                    placeholder="Select your investment goal"
+                    label="投资目标"
+                    placeholder="请选择投资目标"
                     options={INVESTMENT_GOALS}
                     control={control}
                     error={errors.investmentGoals}
@@ -115,8 +115,8 @@ const SignUp = () => {
 
                 <SelectField
                     name="riskTolerance"
-                    label="Risk Tolerance"
-                    placeholder="Select your risk level"
+                    label="风险偏好"
+                    placeholder="请选择风险偏好"
                     options={RISK_TOLERANCE_OPTIONS}
                     control={control}
                     error={errors.riskTolerance}
@@ -125,8 +125,8 @@ const SignUp = () => {
 
                 <SelectField
                     name="preferredIndustry"
-                    label="Preferred Industry"
-                    placeholder="Select your preferred industry"
+                    label="偏好行业"
+                    placeholder="请选择偏好行业"
                     options={PREFERRED_INDUSTRIES}
                     control={control}
                     error={errors.preferredIndustry}
@@ -134,10 +134,10 @@ const SignUp = () => {
                 />
 
                 <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
-                    {isSubmitting ? 'Creating Account' : 'Start Your Investing Journey'}
+                    {isSubmitting ? '正在创建账号...' : '开始使用'}
                 </Button>
 
-                <FooterLink text="Already have an account?" linkText="Sign in" href="/sign-in" />
+                <FooterLink text="已有账号？" linkText="立即登录" href="/sign-in" />
 
                 <OpenDevSocietyBranding outerClassName="mt-10 flex justify-center" />
                 <div className="mt-5 flex justify-center">

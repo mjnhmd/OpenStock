@@ -1,47 +1,57 @@
+export const TRADINGVIEW_LOCALE = 'zh_CN';
+
 export const NAV_ITEMS = [
-    { href: '/', label: 'Dashboard' },
-    { href: '/search', label: 'Search' },
-    { href: '/watchlist', label: 'Watchlist' },
-    { href: '/api-docs', label: 'API Docs' },
+    { href: '/', label: '行情中心' },
+    { href: '/search', label: '股票搜索' },
+    { href: '/watchlist', label: '自选股' },
+    { href: '/api-docs', label: '接口文档' },
+];
+
+export const POPULAR_A_SHARE_SYMBOLS = [
+    '600519.SH',
+    '300750.SZ',
+    '000001.SZ',
+    '601318.SH',
+    '600036.SH',
 ];
 
 // Sign-up form select options
 export const INVESTMENT_GOALS = [
-    { value: 'Growth', label: 'Growth' },
-    { value: 'Income', label: 'Income' },
-    { value: 'Balanced', label: 'Balanced' },
-    { value: 'Conservative', label: 'Conservative' },
+    { value: 'Growth', label: '成长型' },
+    { value: 'Income', label: '收益型' },
+    { value: 'Balanced', label: '平衡型' },
+    { value: 'Conservative', label: '保守型' },
 ];
 
 export const RISK_TOLERANCE_OPTIONS = [
-    { value: 'Low', label: 'Low' },
-    { value: 'Medium', label: 'Medium' },
-    { value: 'High', label: 'High' },
+    { value: 'Low', label: '低风险' },
+    { value: 'Medium', label: '中风险' },
+    { value: 'High', label: '高风险' },
 ];
 
 export const PREFERRED_INDUSTRIES = [
-    { value: 'Technology', label: 'Technology' },
-    { value: 'Healthcare', label: 'Healthcare' },
-    { value: 'Finance', label: 'Finance' },
-    { value: 'Energy', label: 'Energy' },
-    { value: 'Consumer Goods', label: 'Consumer Goods' },
+    { value: 'Technology', label: '科技' },
+    { value: 'Healthcare', label: '医疗健康' },
+    { value: 'Finance', label: '金融' },
+    { value: 'Energy', label: '能源' },
+    { value: 'Consumer Goods', label: '消费' },
 ];
 
 export const ALERT_TYPE_OPTIONS = [
-    { value: 'upper', label: 'Upper' },
-    { value: 'lower', label: 'Lower' },
+    { value: 'upper', label: '高于' },
+    { value: 'lower', label: '低于' },
 ];
 
 export const CONDITION_OPTIONS = [
-    { value: 'greater', label: 'Greater than (>)' },
-    { value: 'less', label: 'Less than (<)' },
+    { value: 'greater', label: '大于 (>)' },
+    { value: 'less', label: '小于 (<)' },
 ];
 
 // TradingView Charts
 export const MARKET_OVERVIEW_WIDGET_CONFIG = {
     colorTheme: 'dark', // dark mode
     dateRange: '12M', // last 12 months
-    locale: 'en', // language
+    locale: TRADINGVIEW_LOCALE, // language
     largeChartUrl: '', // link to a large chart if needed
     isTransparent: true, // makes background transparent
     showFloatingTooltip: true, // show tooltip on hover
@@ -56,7 +66,17 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
     symbolActiveColor: 'rgba(15, 237, 190, 0.05)', // highlight color for active symbol
     tabs: [
         {
-            title: 'Financial',
+            title: 'A股',
+            symbols: [
+                { s: 'SSE:600519', d: '贵州茅台' },
+                { s: 'SZSE:300750', d: '宁德时代' },
+                { s: 'SZSE:000001', d: '平安银行' },
+                { s: 'SSE:601318', d: '中国平安' },
+                { s: 'SSE:600036', d: '招商银行' },
+            ],
+        },
+        {
+            title: '金融',
             symbols: [
                 { s: 'NYSE:JPM', d: 'JPMorgan Chase' },
                 { s: 'NYSE:WFC', d: 'Wells Fargo Co New' },
@@ -67,7 +87,7 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
             ],
         },
         {
-            title: 'Technology',
+            title: '科技',
             symbols: [
                 { s: 'NASDAQ:AAPL', d: 'Apple' },
                 { s: 'NASDAQ:GOOGL', d: 'Alphabet' },
@@ -78,7 +98,7 @@ export const MARKET_OVERVIEW_WIDGET_CONFIG = {
             ],
         },
         {
-            title: 'Services',
+            title: '服务',
             symbols: [
                 { s: 'NASDAQ:AMZN', d: 'Amazon' },
                 { s: 'NYSE:BABA', d: 'Alibaba Group Hldg Ltd' },
@@ -102,7 +122,7 @@ export const HEATMAP_WIDGET_CONFIG = {
     blockColor: 'change',
     grouping: 'sector',
     isTransparent: true,
-    locale: 'en',
+    locale: TRADINGVIEW_LOCALE,
     symbolUrl: '',
     colorTheme: 'dark',
     exchanges: [],
@@ -120,24 +140,34 @@ export const TOP_STORIES_WIDGET_CONFIG = {
     feedMode: 'market',
     colorTheme: 'dark',
     isTransparent: true,
-    locale: 'en',
+    locale: TRADINGVIEW_LOCALE,
     market: 'stock',
     width: '100%',
     height: '600',
 };
 
 export const MARKET_DATA_WIDGET_CONFIG = {
-    title: 'Stocks',
+    title: 'A股与美股',
     width: '100%',
     height: 600,
-    locale: 'en',
+    locale: TRADINGVIEW_LOCALE,
     showSymbolLogo: true,
     colorTheme: 'dark',
     isTransparent: false,
     backgroundColor: '#0F0F0F',
     symbolsGroups: [
         {
-            name: 'Financial',
+            name: 'A股热门',
+            symbols: [
+                { name: 'SSE:600519', displayName: '贵州茅台' },
+                { name: 'SZSE:300750', displayName: '宁德时代' },
+                { name: 'SZSE:000001', displayName: '平安银行' },
+                { name: 'SSE:601318', displayName: '中国平安' },
+                { name: 'SSE:600036', displayName: '招商银行' },
+            ],
+        },
+        {
+            name: '金融',
             symbols: [
                 { name: 'NYSE:JPM', displayName: 'JPMorgan Chase' },
                 { name: 'NYSE:WFC', displayName: 'Wells Fargo Co New' },
@@ -148,7 +178,7 @@ export const MARKET_DATA_WIDGET_CONFIG = {
             ],
         },
         {
-            name: 'Technology',
+            name: '科技',
             symbols: [
                 { name: 'NASDAQ:AAPL', displayName: 'Apple' },
                 { name: 'NASDAQ:GOOGL', displayName: 'Alphabet' },
@@ -159,7 +189,7 @@ export const MARKET_DATA_WIDGET_CONFIG = {
             ],
         },
         {
-            name: 'Services',
+            name: '服务',
             symbols: [
                 { name: 'NASDAQ:AMZN', displayName: 'Amazon' },
                 { name: 'NYSE:BABA', displayName: 'Alibaba Group Hldg Ltd' },
@@ -175,7 +205,7 @@ export const SYMBOL_INFO_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: true,
-    locale: 'en',
+    locale: TRADINGVIEW_LOCALE,
     width: '100%',
     height: 170,
 });
@@ -190,7 +220,7 @@ export const CANDLE_CHART_WIDGET_CONFIG = (symbol: string) => ({
     hide_volume: false,
     hotlist: false,
     interval: 'D',
-    locale: 'en',
+    locale: TRADINGVIEW_LOCALE,
     save_image: false,
     style: 1,
     symbol: symbol.toUpperCase(),
@@ -216,7 +246,7 @@ export const BASELINE_WIDGET_CONFIG = (symbol: string) => ({
     hide_volume: false,
     hotlist: false,
     interval: 'D',
-    locale: 'en',
+    locale: TRADINGVIEW_LOCALE,
     save_image: false,
     style: 10,
     symbol: symbol.toUpperCase(),
@@ -236,7 +266,7 @@ export const TECHNICAL_ANALYSIS_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: 'true',
-    locale: 'en',
+    locale: TRADINGVIEW_LOCALE,
     width: '100%',
     height: 400,
     interval: '1h',
@@ -247,7 +277,7 @@ export const COMPANY_PROFILE_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: 'true',
-    locale: 'en',
+    locale: TRADINGVIEW_LOCALE,
     width: '100%',
     height: 440,
 });
@@ -256,7 +286,7 @@ export const COMPANY_FINANCIALS_WIDGET_CONFIG = (symbol: string) => ({
     symbol: symbol.toUpperCase(),
     colorTheme: 'dark',
     isTransparent: 'true',
-    locale: 'en',
+    locale: TRADINGVIEW_LOCALE,
     width: '100%',
     height: 464,
     displayMode: 'regular',
@@ -326,31 +356,31 @@ export const POPULAR_STOCK_SYMBOLS = [
 ];
 
 export const NO_MARKET_NEWS =
-    '<p class="mobile-text" style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#4b5563;">No market news available today. Please check back tomorrow.</p>';
+    '<p class="mobile-text" style="margin:0 0 20px 0;font-size:16px;line-height:1.6;color:#4b5563;">今日暂无市场新闻，请明天再来查看。</p>';
 
 export const WATCHLIST_TABLE_HEADER = [
-    'Company',
-    'Symbol',
-    'Price',
-    'Change',
-    'Market Cap',
-    'P/E Ratio',
-    'Alert',
-    'Action',
+    '公司',
+    '代码',
+    '价格',
+    '涨跌',
+    '市值',
+    '市盈率',
+    '提醒',
+    '操作',
 ];
 
 export const PASSWORD_RULES = [
-    { label: 'At least 8 characters', test: (pw: string) => pw.length >= 8 },
-    { label: 'At least 1 uppercase letter', test: (pw: string) => /[A-Z]/.test(pw) },
-    { label: 'At least 1 lowercase letter', test: (pw: string) => /[a-z]/.test(pw) },
-    { label: 'At least 1 number', test: (pw: string) => /[0-9]/.test(pw) },
+    { label: '至少 8 个字符', test: (pw: string) => pw.length >= 8 },
+    { label: '至少 1 个大写字母', test: (pw: string) => /[A-Z]/.test(pw) },
+    { label: '至少 1 个小写字母', test: (pw: string) => /[a-z]/.test(pw) },
+    { label: '至少 1 个数字', test: (pw: string) => /[0-9]/.test(pw) },
 ] as const;
 
 export const PASSWORD_VALIDATION = {
-    required: 'Password is required',
-    minLength: { value: 8, message: 'Password must be at least 8 characters' },
+    required: '请输入密码',
+    minLength: { value: 8, message: '密码至少需要 8 个字符' },
     pattern: {
         value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/,
-        message: 'Password must include uppercase, lowercase, and a number',
+        message: '密码必须包含大写字母、小写字母和数字',
     },
 };

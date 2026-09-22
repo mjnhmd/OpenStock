@@ -57,7 +57,7 @@ const TradingViewWidget = ({ title, scriptUrl, config, height = 600, className, 
                             "absolute top-2 right-2 z-10 hover:bg-background/50 text-muted-foreground hover:text-foreground transition-all duration-200",
                             !isExpanded ? "opacity-0 group-hover:opacity-100" : "bg-background/20"
                         )}
-                        title={isExpanded ? "Minimize" : "Click to expand"}
+                        title={isExpanded ? "退出全屏" : "点击全屏查看"}
                     >
                         {isExpanded ? <Minimize2 className="h-6 w-6" /> : <Maximize2 className="h-6 w-6" />}
                     </Button>

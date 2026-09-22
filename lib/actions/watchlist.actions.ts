@@ -3,19 +3,21 @@
 import { connectToDatabase } from '@/database/mongoose';
 import { Watchlist } from '@/database/models/watchlist.model';
 import { revalidatePath } from 'next/cache';
+import { normalizeAShareSymbol } from '@/lib/market-data/symbols';
 
 // -- CRUD Operations --
 
 export async function addToWatchlist(userId: string, symbol: string, company: string) {
     try {
         await connectToDatabase();
+        const normalizedSymbol = normalizeAShareSymbol(symbol)?.symbol ?? symbol.toUpperCase();
 
         // Upsert to avoid duplicates/errors if it already exists
         const newItem = await Watchlist.findOneAndUpdate(
-            { userId, symbol: symbol.toUpperCase() },
+            { userId, symbol: normalizedSymbol },
             {
                 userId,
-                symbol: symbol.toUpperCase(),
+                symbol: normalizedSymbol,
                 company,
                 addedAt: new Date()
             },
@@ -33,7 +35,8 @@ export async function addToWatchlist(userId: string, symbol: string, company: st
 export async function removeFromWatchlist(userId: string, symbol: string) {
     try {
         await connectToDatabase();
-        await Watchlist.findOneAndDelete({ userId, symbol: symbol.toUpperCase() });
+        const normalizedSymbol = normalizeAShareSymbol(symbol)?.symbol ?? symbol.toUpperCase();
+        await Watchlist.findOneAndDelete({ userId, symbol: normalizedSymbol });
         revalidatePath('/watchlist');
         revalidatePath('/'); // In case it's used elsewhere
         return { success: true };
@@ -58,7 +61,8 @@ export async function getUserWatchlist(userId: string) {
 export async function isStockInWatchlist(userId: string, symbol: string) {
     try {
         await connectToDatabase();
-        const item = await Watchlist.findOne({ userId, symbol: symbol.toUpperCase() });
+        const normalizedSymbol = normalizeAShareSymbol(symbol)?.symbol ?? symbol.toUpperCase();
+        const item = await Watchlist.findOne({ userId, symbol: normalizedSymbol });
         return !!item;
     } catch (error) {
         console.error('Error checking watchlist status:', error);

@@ -30,48 +30,48 @@ const ForgotPasswordPage = () => {
             const result = await requestPasswordResetEmail(data);
 
             if (result.success) {
-                toast.success('If an account exists for that email, a reset link has been sent.');
+                toast.success('如果该邮箱已注册，重置链接已发送。');
                 return;
             }
 
-            toast.error('Password reset unavailable', {
-                description: result.error ?? 'Unable to start password reset.',
+            toast.error('暂时无法重置密码', {
+                description: result.error ?? '无法发起密码重置。',
             });
         } catch (error) {
-            toast.error('Password reset unavailable', {
-                description: error instanceof Error ? error.message : 'Unable to start password reset.',
+            toast.error('暂时无法重置密码', {
+                description: error instanceof Error ? error.message : '无法发起密码重置。',
             });
         }
     };
 
     return (
         <>
-            <h1 className="form-title">Forgot your password?</h1>
+            <h1 className="form-title">忘记密码？</h1>
             <p className="text-sm text-gray-400 mb-6">
-                Enter your email address and we&apos;ll send you a password reset link.
+                输入注册邮箱，我们会发送密码重置链接。
             </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <InputField
                     name="email"
-                    label="Email"
+                    label="邮箱"
                     placeholder="opendevsociety@cc.cc"
                     register={register}
                     error={errors.email}
                     validation={{
-                        required: 'Email is required',
+                        required: '请输入邮箱',
                         pattern: {
                             value: /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/,
-                            message: 'Please enter a valid email address',
+                            message: '请输入有效邮箱地址',
                         },
                     }}
                 />
 
                 <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
-                    {isSubmitting ? 'Sending reset link' : 'Send reset link'}
+                    {isSubmitting ? '发送中...' : '发送重置链接'}
                 </Button>
 
-                <FooterLink text="Remembered it?" linkText="Sign in" href="/sign-in" />
+                <FooterLink text="想起密码了？" linkText="返回登录" href="/sign-in" />
                 <OpenDevSocietyBranding outerClassName="mt-10 flex justify-center" />
             </form>
         </>

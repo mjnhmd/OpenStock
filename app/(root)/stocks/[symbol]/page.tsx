@@ -14,21 +14,31 @@ import { auth } from '@/lib/better-auth/auth';
 import { headers } from 'next/headers';
 import { isStockInWatchlist } from '@/lib/actions/watchlist.actions';
 import { getStockSentimentInsights } from '@/lib/actions/adanos.actions';
-import { formatSymbolForTradingView } from '@/lib/utils';
+import { getQuote, getCompanyProfile } from '@/lib/actions/finnhub.actions';
+import { isAShareSymbol, normalizeAShareSymbol } from '@/lib/market-data/symbols';
+import { formatPrice, formatSymbolForTradingView } from '@/lib/utils';
 
 export default async function StockDetails({ params }: StockDetailsPageProps) {
     const { symbol } = await params;
-    const tvSymbol = formatSymbolForTradingView(symbol);
+    const canonicalSymbol = normalizeAShareSymbol(symbol)?.symbol ?? symbol.toUpperCase();
+    const tvSymbol = formatSymbolForTradingView(canonicalSymbol);
+    const isAShare = isAShareSymbol(canonicalSymbol);
     const scriptUrl = `https://s3.tradingview.com/external-embedding/embed-widget-`;
 
     const session = await auth.api.getSession({
         headers: await headers()
     });
     const userId = session?.user?.id;
-    const [isInWatchlist, sentimentInsights] = await Promise.all([
-        userId ? isStockInWatchlist(userId, symbol) : Promise.resolve(false),
-        getStockSentimentInsights(symbol),
+    const [isInWatchlist, sentimentInsights, profile, quote] = await Promise.all([
+        userId ? isStockInWatchlist(userId, canonicalSymbol) : Promise.resolve(false),
+        isAShare ? Promise.resolve(null) : getStockSentimentInsights(canonicalSymbol),
+        getCompanyProfile(canonicalSymbol),
+        getQuote(canonicalSymbol),
     ]);
+
+    const quotePrice = quote && 'price' in quote ? quote.price : quote?.c;
+    const quoteCurrency = quote && 'currency' in quote && typeof quote.currency === 'string' ? quote.currency : 'USD';
+    const quoteStale = Boolean(quote && 'stale' in quote && quote.stale);
 
     return (
         <div className="flex min-h-screen p-4 md:p-6 lg:p-8">
@@ -60,16 +70,26 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
 
                 {/* Right column */}
                 <div className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between">
-                        <WatchlistButton
-                            symbol={symbol.toUpperCase()}
-                            company={symbol.toUpperCase()}
-                            isInWatchlist={isInWatchlist}
-                            userId={userId}
-                        />
+                    <div className="flex flex-col gap-3">
+                        <div>
+                            <h1 className="text-3xl font-bold text-white">{profile?.name || canonicalSymbol}</h1>
+                            <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-400">
+                                <span>{canonicalSymbol}</span>
+                                {typeof quotePrice === 'number' && <span>{formatPrice(quotePrice, quoteCurrency)}</span>}
+                                {quoteStale && <span className="text-yellow-500">缓存数据</span>}
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <WatchlistButton
+                                symbol={canonicalSymbol}
+                                company={profile?.name || canonicalSymbol}
+                                isInWatchlist={isInWatchlist}
+                                userId={userId}
+                            />
+                        </div>
                     </div>
 
-                    <StockSentimentCard insight={sentimentInsights} />
+                    {!isAShare && <StockSentimentCard insight={sentimentInsights} />}
 
                     <TradingViewWidget
                         scriptUrl={`${scriptUrl}technical-analysis.js`}

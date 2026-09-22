@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OpenStock",
-  description: "OpenStock is an open-source alternative to expensive market platforms. Track real-time prices, set personalized alerts, and explore detailed company insights — built openly, for everyone, forever free.",
+  title: "OpenStock 中文行情",
+  description: "开源股票行情与自选股工具，支持 A 股多数据源 fallback、价格提醒和个股分析。",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className="dark">
+        <html lang="zh-CN" className="dark">
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >

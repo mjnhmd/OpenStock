@@ -8,7 +8,7 @@ import Link from "next/link";
 import {searchStocks} from "@/lib/actions/finnhub.actions";
 import {useDebounce} from "@/hooks/useDebounce";
 
-export default function SearchCommand({ renderAs = 'button', label = 'Add stock', initialStocks }: SearchCommandProps) {
+export default function SearchCommand({ renderAs = 'button', label = '添加股票', initialStocks }: SearchCommandProps) {
     const [open, setOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [loading, setLoading] = useState(false)
@@ -71,20 +71,20 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
             )}
             <CommandDialog open={open} onOpenChange={setOpen} className="search-dialog">
                 <div className="search-field">
-                    <CommandInput value={searchTerm} onValueChange={setSearchTerm} placeholder="Search stocks..." className="search-input" />
+                    <CommandInput value={searchTerm} onValueChange={setSearchTerm} placeholder="搜索股票、代码或拼音..." className="search-input" />
                     {loading && <Loader2 className="search-loader" />}
                 </div>
                 <CommandList className="search-list">
                     {loading ? (
-                        <CommandEmpty className="search-list-empty">Loading stocks...</CommandEmpty>
+                        <CommandEmpty className="search-list-empty">正在搜索...</CommandEmpty>
                     ) : displayStocks?.length === 0 ? (
                         <div className="search-list-indicator">
-                            {isSearchMode ? 'No results found' : 'No stocks available'}
+                            {isSearchMode ? '未找到匹配股票' : '暂无股票数据'}
                         </div>
                     ) : (
                         <ul>
                             <div className="search-count">
-                                {isSearchMode ? 'Search results' : 'Popular stocks'}
+                                {isSearchMode ? '搜索结果' : '热门股票'}
                                 {` `}({displayStocks?.length || 0})
                             </div>
                             {displayStocks?.map((stock) => (

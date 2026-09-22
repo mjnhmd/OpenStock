@@ -14,7 +14,7 @@ const Home = () => {
             <section className="grid w-full gap-8 home-section">
                 <div className="md:col-span-1 xl:col-span-1">
                     <TradingViewWidget
-                        title="Market Overview"
+                        title="市场概览"
                         scriptUrl={`${scriptUrl}market-overview.js`}
                         config={MARKET_OVERVIEW_WIDGET_CONFIG}
                         className="custom-chart"
@@ -23,7 +23,7 @@ const Home = () => {
                 </div>
                 <div className="md-col-span xl:col-span-2">
                     <TradingViewWidget
-                        title="Stock Heatmap"
+                        title="股票热力图"
                         scriptUrl={`${scriptUrl}stock-heatmap.js`}
                         config={HEATMAP_WIDGET_CONFIG}
                         height={600}
@@ -48,7 +48,7 @@ const Home = () => {
 
             </section>
             <div className="w-full flex flex-col items-center justify-center mt-8 gap-4">
-                <h2 className="text-xl font-semibold text-gray-200">Upvote us on Peerlist 🚀</h2>
+                <h2 className="text-xl font-semibold text-gray-200">在 Peerlist 支持 OpenStock 🚀</h2>
                 <a href="https://peerlist.io/ravixalgorithm/project/openstock" target="_blank" rel="noreferrer">
                     <img
                         src="https://peerlist.io/api/v1/projects/embed/PRJH8OED7MBL9MGB9HRMKAKLM66KNN?showUpvote=true&theme=light"

@@ -26,13 +26,13 @@ export default async function WatchlistPage() {
     const [watchlistItems, alerts, news] = await Promise.all([
         getUserWatchlist(userId),
         getUserAlerts(userId),
-        getNews() // Initial news fetch
+        getNews().catch(() => []) // Initial news fetch
     ]);
 
     const watchlistSymbols = watchlistItems.map((item: any) => item.symbol);
 
     // Fallback news if watchlist has items
-    const relevantNews = watchlistSymbols.length > 0 ? await getNews(watchlistSymbols) : news;
+    const relevantNews = watchlistSymbols.length > 0 ? await getNews(watchlistSymbols).catch(() => news) : news;
 
     return (
         <div className="min-h-screen bg-black text-gray-100 p-6 md:p-8">
@@ -40,12 +40,12 @@ export default async function WatchlistPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                 <div>
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-500">
-                        Watchlist
+                        自选股
                     </h1>
-                    <p className="text-gray-500 mt-1">Track your favorite stocks and manage alerts.</p>
+                    <p className="text-gray-500 mt-1">跟踪关注的股票并管理价格提醒。</p>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <SearchCommand renderAs="button" label="Add Stock" initialStocks={[]} />
+                    <SearchCommand renderAs="button" label="添加股票" initialStocks={[]} />
                 </div>
             </div>
 

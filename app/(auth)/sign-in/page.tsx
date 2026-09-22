@@ -32,58 +32,58 @@ const SignIn = () => {
                 router.push('/');
                 return;
             }
-            toast.error('Sign in failed', {
-                description: result.error ?? 'Invalid email or password.',
+            toast.error('登录失败', {
+                description: result.error ?? '邮箱或密码错误。',
             });
         } catch (e) {
             console.error(e);
-            toast.error('Sign in failed', {
-                description: e instanceof Error ? e.message : 'Failed to sign in.'
+            toast.error('登录失败', {
+                description: e instanceof Error ? e.message : '登录失败，请稍后重试。'
             })
         }
     }
 
     return (
         <>
-            <h1 className="form-title">Welcome back</h1>
+            <h1 className="form-title">欢迎回来</h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <InputField
                     name="email"
-                    label="Email"
+                    label="邮箱"
                     placeholder="opendevsociety@cc.cc"
                     register={register}
                     error={errors.email}
                     validation={{
-                        required: 'Email is required',
+                        required: '请输入邮箱',
                         pattern: {
                             value: /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/,
-                            message: 'Please enter a valid email address'
+                            message: '请输入有效邮箱地址'
                         }
                     }}
                 />
 
                 <InputField
                     name="password"
-                    label="Password"
-                    placeholder="Enter your password"
+                    label="密码"
+                    placeholder="请输入密码"
                     type="password"
                     register={register}
                     error={errors.password}
-                    validation={{ required: 'Password is required', minLength: 8 }}
+                    validation={{ required: '请输入密码', minLength: 8 }}
                 />
 
                 <div className="flex justify-end">
                     <Link href="/forgot-password" className="footer-link text-sm">
-                        Forgot password?
+                        忘记密码？
                     </Link>
                 </div>
 
                 <Button type="submit" disabled={isSubmitting} className="yellow-btn w-full mt-5">
-                    {isSubmitting ? 'Signing In' : 'Sign In'}
+                    {isSubmitting ? '登录中...' : '登录'}
                 </Button>
 
-                <FooterLink text="Don't have an account?" linkText="Create an account" href="/sign-up" />
+                <FooterLink text="还没有账号？" linkText="创建账号" href="/sign-up" />
                 <OpenDevSocietyBranding outerClassName="mt-10 flex justify-center" />
                 <div className="mt-5 flex justify-center">
                     <a href="https://peerlist.io/ravixalgorithm/project/openstock" target="_blank" rel="noreferrer">
